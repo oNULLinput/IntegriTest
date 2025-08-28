@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exam Interface - IntegriTest</title>
+  <meta name="description" content="Secure online examination interface" />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="exam-styles.css" />
+</head>
+<body class="exam-body">
+  <!-- Exam Header -->
+  <header class="exam-header">
+    <div class="container">
+      <div class="exam-header-content">
+        <div class="exam-info">
+          <div class="student-info">
+            <h1 id="exam-title">Loading Exam...</h1>
+            <p id="student-details">Student Information</p>
+          </div>
+        </div>
+        
+        <div class="timer-section">
+          <div class="timer-display">
+            <svg class="timer-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span id="timer" class="timer-text">00:00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Progress Section -->
+  <section class="progress-section">
+    <div class="container">
+      <div class="progress-info">
+        <span id="progress-text">Question 1 of 0</span>
+        <span id="answered-count">0 answered</span>
+      </div>
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Exam Content -->
+  <main class="exam-main">
+    <div class="container">
+      <div class="exam-content">
+        <!-- Camera Monitoring Section -->
+        <div class="camera-section">
+          <div class="camera-container">
+            <video id="webcam" autoplay muted playsinline></video>
+            <div id="camera-status" class="camera-status">
+              <div class="status-indicator"></div>
+              <span class="status-text">Initializing camera...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="question-card">
+          <div class="question-header">
+            <h2 id="question-number">Question 1</h2>
+            <span class="question-type">Multiple Choice</span>
+          </div>
+          
+          <div class="question-body">
+            <p id="question-text" class="question-text">Loading question...</p>
+            <div id="question-options" class="question-options">
+              <!-- Options will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="exam-navigation">
+          <button id="prev-btn" class="btn btn-outline" disabled>
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Previous
+          </button>
+
+          <div class="question-indicators">
+            <!-- Question indicators will be populated by JavaScript -->
+          </div>
+
+          <button id="next-btn" class="btn btn-primary">
+            Next
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Submit Button -->
+        <div style="text-align: center; margin-top: 2rem;">
+          <button id="submit-exam-btn" class="btn btn-primary btn-full">
+            Submit Exam
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Enhanced Camera Notification Modal -->
+  <div id="camera-notification" class="camera-notification">
+    <div class="notification-content">
+      <svg class="notification-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+      </svg>
+      <div class="notification-text">
+        <h4>⚠️ Return to Camera View</h4>
+        <p>Please position yourself clearly in the camera frame. Your professor is monitoring this exam.</p>
+        <div class="countdown-display">
+          <span>Auto-submit in: <strong id="camera-countdown">7</strong> seconds</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Switching Notification Overlay -->
+  <div id="tab-switch-notification" class="tab-switch-notification">
+    <div class="tab-notification-content">
+      <svg class="notification-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+      </svg>
+      <div class="tab-notification-text">
+        <h4 id="tab-warning-title">Tab Switching Detected</h4>
+        <p id="tab-warning-message">Please stay focused on the exam window.</p>
+        <div class="warning-progress">
+          <span id="violation-count-display">Warning 1 of 3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Screen Camera Warning -->
+  <div id="camera-warning-overlay" class="camera-warning-overlay">
+    <div class="warning-content">
+      <div class="warning-icon-large">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+        </svg>
+      </div>
+      <h2>Camera Monitoring Required</h2>
+      <p>You must remain visible in the camera view during the exam.</p>
+      <p><strong>Your professor is monitoring this session.</strong></p>
+      <div class="warning-timer">
+        <span id="warning-countdown">10</span> seconds to return to view
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Confirmation Modal -->
+  <div id="submit-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Submit Exam</h3>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to submit your exam?</p>
+        <p class="modal-warning">You have <span id="unanswered-count">0</span> unanswered questions.</p>
+        <p class="modal-note">Once submitted, you cannot make any changes.</p>
+      </div>
+      <div class="modal-actions">
+        <button id="cancel-submit" class="btn btn-outline">Cancel</button>
+        <button id="confirm-submit" class="btn btn-primary">Submit Exam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Modal -->
+  <div id="results-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Exam Results</h3>
+      </div>
+      <div class="modal-body">
+        <div class="results-summary">
+          <div class="score-display">
+            <div class="score-circle">
+              <span id="score-percentage">0%</span>
+            </div>
+          </div>
+          
+          <div class="results-details">
+            <div class="result-item">
+              <span class="result-label">Correct Answers:</span>
+              <span><span id="correct-count">0</span> / <span id="total-questions">0</span></span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">Time Taken:</span>
+              <span id="time-taken">0 minutes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="return-home" class="btn btn-primary">Return to Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="utils.js"></script>
+  <script src="exam-script.js"></script>
+</body>
+</html>

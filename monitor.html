@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Monitor - IntegriTest</title>
+    <!-- Enhanced Google Fonts with more professional typography options -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="monitor-styles.css">
+</head>
+<body>
+    <div class="monitor-container">
+        <!-- Enhanced header with gradient background and better visual hierarchy -->
+        <div class="monitor-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="meeting-info">
+                        <div class="brand-section">
+                            <div class="brand-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </div>
+                            <div class="brand-text">
+                                <h1 class="monitor-title">IntegriTest Monitor</h1>
+                                <p class="monitor-subtitle">Live Exam Supervision</p>
+                            </div>
+                        </div>
+                        <div class="exam-details">
+                            <div class="exam-badge" id="examInfo">
+                                <div class="badge-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14,2 14,8 20,8"/>
+                                        <line x1="16" y1="13" x2="8" y2="13"/>
+                                        <line x1="16" y1="17" x2="8" y2="17"/>
+                                        <polyline points="10,9 9,9 8,9"/>
+                                    </svg>
+                                </div>
+                                <span>Mathematics Final Exam</span>
+                            </div>
+                            <div class="session-info">
+                                <div class="session-time" id="sessionTime">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12,6 12,12 16,14"/>
+                                    </svg>
+                                    Started at 10:30 AM
+                                </div>
+                                <div class="session-duration" id="sessionDuration">Duration: 2 hours</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="meeting-controls">
+                        <div class="status-indicators">
+                            <div class="live-indicator">
+                                <div class="live-dot"></div>
+                                <span>LIVE</span>
+                            </div>
+                            <div class="participant-count">
+                                <div class="count-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                </div>
+                                <span id="participantCount">0</span>
+                                <span class="count-label">participants</span>
+                            </div>
+                        </div>
+                        <button class="btn-back" onclick="goBackToDashboard()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m12 19-7-7 7-7"/>
+                                <path d="m19 12H5"/>
+                            </svg>
+                            <span>Back to Dashboard</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced stats bar with cards, icons, and better visual design -->
+        <div class="monitor-stats">
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-icon active">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="activeStudents">0</span>
+                        <span class="stat-label">Active Students</span>
+                    </div>
+                    <div class="stat-trend positive">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon timer">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12,6 12,12 16,14"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="examDuration">30:00</span>
+                        <span class="stat-label">Time Remaining</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon completion">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22,4 12,14.01 9,11.01"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="completionRate">0%</span>
+                        <span class="stat-label">Avg Progress</span>
+                    </div>
+                    <div class="stat-indicator">
+                        <div class="indicator-dot"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-card alert">
+                    <div class="stat-icon warning">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                            <path d="M12 9v4"/>
+                            <path d="m12 17 .01 0"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="violationCount">0</span>
+                        <span class="stat-label">Security Alerts</span>
+                    </div>
+                    <div class="stat-pulse">
+                        <div class="pulse-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced camera grid with professional meeting-style layout and animations -->
+        <div class="camera-grid-container">
+            <div class="camera-grid" id="cameraGrid">
+                <div class="no-students" id="noStudentsMessage">
+                    <div class="no-students-content">
+                        <div class="no-students-illustration">
+                            <div class="illustration-bg">
+                                <div class="floating-icon icon-1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <path d="M23 7l-7 5 7 5V7z"/>
+                                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                                    </svg>
+                                </div>
+                                <div class="floating-icon icon-2">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                                <div class="floating-icon icon-3">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="main-icon">
+                                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                    <path d="M23 7l-7 5 7 5V7z"/>
+                                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="no-students-text">
+                            <h2>Waiting for Students to Join</h2>
+                            <p>Student camera feeds will appear here when they start taking the exam</p>
+                            <div class="connection-status">
+                                <div class="status-dot"></div>
+                                <span>Monitoring system is active and ready</span>
+                            </div>
+                        </div>
+                        <div class="waiting-animation">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced expanded view with professional design and better controls -->
+        <div class="expanded-camera-modal" id="expandedCameraModal">
+            <div class="expanded-camera-content">
+                <div class="expanded-header">
+                    <div class="student-info">
+                        <div class="student-avatar">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        <div class="student-details">
+                            <h3 id="expandedStudentName">Student Name</h3>
+                            <div class="student-meta">
+                                <span class="student-id" id="expandedStudentId">ID: 12345</span>
+                                <div class="connection-indicator">
+                                    <div class="connection-dot"></div>
+                                    <span>Connected</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="expanded-controls">
+                        <button class="control-btn" title="Pin participant">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 17v5"/>
+                                <path d="M9 12.5 11 10.5a1 1 0 0 1 1.41 0l.59.59a1 1 0 0 1 0 1.41L11.5 14a1 1 0 0 1-1.41 0z"/>
+                            </svg>
+                        </button>
+                        <button class="control-btn" title="Take screenshot">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                        </button>
+                        <button class="close-expanded" onclick="closeExpandedCamera()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6 6 18"/>
+                                <path d="m6 6 12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="expanded-video-container">
+                    <video id="expandedVideo" autoplay muted></video>
+                    <div class="video-overlay">
+                        <div class="violation-indicator" id="expandedViolation"></div>
+                        <div class="video-info">
+                            <div class="quality-indicator">
+                                <div class="quality-dot"></div>
+                                <span>HD</span>
+                            </div>
+                            <div class="recording-indicator">
+                                <div class="recording-dot"></div>
+                                <span>MONITORING</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="monitor-script.js"></script>
+</body>
+</html>
