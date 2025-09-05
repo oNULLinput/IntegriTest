@@ -483,40 +483,46 @@ studentForm.addEventListener("submit", async (e) => {
     return
   }
 
-  if (examCode !== SAMPLE_EXAM.code) {
-    showMessage("Invalid exam code. Please check and try again.")
-    return
-  }
-
   showLoading()
 
-  setTimeout(() => {
+  try {
+    const response = await fetch('http://localhost:3001/api/auth/student/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        examCode,
+        fullName,
+        studentNumber,
+        faceVerified: isFaceVerified
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed')
+    }
+
+    // Store token and user data
+    localStorage.setItem('authToken', data.token)
+    localStorage.setItem('userData', JSON.stringify(data.user))
+    localStorage.setItem('examData', JSON.stringify(data.exam))
+    localStorage.setItem('attemptData', JSON.stringify(data.attempt))
+
     hideLoading()
-
-    const studentInfo = {
-      fullName,
-      studentNumber,
-      examCode,
-      loginTime: new Date().toISOString(),
-      faceVerified: true,
-      cameraEnabled: true,
-    }
-
-    if (window.IntegriTestUtils) {
-      window.IntegriTestUtils.StorageUtils.setItem("studentInfo", studentInfo)
-      window.IntegriTestUtils.StorageUtils.setItem("examData", SAMPLE_EXAM)
-      window.IntegriTestUtils.AnalyticsUtils.trackEvent("student_login", { examCode, fullName })
-    } else {
-      localStorage.setItem("studentInfo", JSON.stringify(studentInfo))
-      localStorage.setItem("examData", JSON.stringify(SAMPLE_EXAM))
-    }
-
     showMessage("Access granted! Redirecting to exam...", "success")
 
     setTimeout(() => {
       window.location.href = "exam.html"
     }, 1500)
-  }, 2000)
+
+  } catch (error) {
+    hideLoading()
+    showMessage(error.message || "Login failed. Please try again.")
+    console.error('Login error:', error)
+  }
 })
 
 instructorForm.addEventListener("submit", async (e) => {
@@ -530,34 +536,39 @@ instructorForm.addEventListener("submit", async (e) => {
     return
   }
 
-  if (username !== INSTRUCTOR_CREDENTIALS.username || password !== INSTRUCTOR_CREDENTIALS.password) {
-    showMessage("Invalid credentials. Please check your username and password.")
-    return
-  }
-
   showLoading()
 
-  setTimeout(() => {
+  try {
+    const response = await fetch('http://localhost:3001/api/auth/instructor/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed')
+    }
+
+    // Store token and user data
+    localStorage.setItem('authToken', data.token)
+    localStorage.setItem('userData', JSON.stringify(data.user))
+
     hideLoading()
-
-    const instructorSession = {
-      username,
-      loginTime: new Date().toISOString(),
-    }
-
-    if (window.IntegriTestUtils) {
-      window.IntegriTestUtils.StorageUtils.setItem("instructorSession", instructorSession)
-      window.IntegriTestUtils.AnalyticsUtils.trackEvent("instructor_login", { username })
-    } else {
-      localStorage.setItem("instructorSession", JSON.stringify(instructorSession))
-    }
-
     showMessage("Login successful! Redirecting to dashboard...", "success")
 
     setTimeout(() => {
       window.location.href = "instructor-dashboard.html"
     }, 1500)
-  }, 2000)
+
+  } catch (error) {
+    hideLoading()
+    showMessage(error.message || "Login failed. Please try again.")
+    console.error('Login error:', error)
+  }
 })
 
 document.addEventListener("DOMContentLoaded", () => {
