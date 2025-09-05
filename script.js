@@ -38,11 +38,8 @@ const SAMPLE_EXAM = {
   ],
 }
 
-// Instructor credentials
-const INSTRUCTOR_CREDENTIALS = {
-  username: "admin",
-  password: "password",
-}
+// Backend base URL (adjust if needed)
+const API_BASE = window.__API_BASE__ || "http://localhost:4000"
 
 let cameraStream = null
 let faceDetectionInterval = null
@@ -483,14 +480,22 @@ studentForm.addEventListener("submit", async (e) => {
     return
   }
 
-  if (examCode !== SAMPLE_EXAM.code) {
-    showMessage("Invalid exam code. Please check and try again.")
-    return
-  }
-
   showLoading()
 
-  setTimeout(() => {
+  try {
+    const resp = await fetch(`${API_BASE}/api/auth/student/access`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ examCode, fullName, studentNumber, faceVerified: true }),
+    })
+
+    const data = await resp.json()
+    if (!resp.ok) {
+      hideLoading()
+      showMessage(data?.error || "Unable to access exam. Please try again.")
+      return
+    }
+
     hideLoading()
 
     const studentInfo = {
@@ -504,19 +509,21 @@ studentForm.addEventListener("submit", async (e) => {
 
     if (window.IntegriTestUtils) {
       window.IntegriTestUtils.StorageUtils.setItem("studentInfo", studentInfo)
-      window.IntegriTestUtils.StorageUtils.setItem("examData", SAMPLE_EXAM)
+      window.IntegriTestUtils.StorageUtils.setItem("examData", data.exam)
       window.IntegriTestUtils.AnalyticsUtils.trackEvent("student_login", { examCode, fullName })
     } else {
       localStorage.setItem("studentInfo", JSON.stringify(studentInfo))
-      localStorage.setItem("examData", JSON.stringify(SAMPLE_EXAM))
+      localStorage.setItem("examData", JSON.stringify(data.exam))
     }
 
     showMessage("Access granted! Redirecting to exam...", "success")
-
     setTimeout(() => {
       window.location.href = "exam.html"
-    }, 1500)
-  }, 2000)
+    }, 1000)
+  } catch (err) {
+    hideLoading()
+    showMessage("Network error. Please try again.")
+  }
 })
 
 instructorForm.addEventListener("submit", async (e) => {
@@ -530,40 +537,48 @@ instructorForm.addEventListener("submit", async (e) => {
     return
   }
 
-  if (username !== INSTRUCTOR_CREDENTIALS.username || password !== INSTRUCTOR_CREDENTIALS.password) {
-    showMessage("Invalid credentials. Please check your username and password.")
-    return
-  }
-
   showLoading()
 
-  setTimeout(() => {
-    hideLoading()
+  try {
+    const resp = await fetch(`${API_BASE}/api/auth/instructor/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    })
 
+    const data = await resp.json()
+    if (!resp.ok) {
+      hideLoading()
+      showMessage(data?.error || "Invalid credentials. Please check your username and password.")
+      return
+    }
+
+    hideLoading()
     const instructorSession = {
-      username,
-      loginTime: new Date().toISOString(),
+      username: data.instructor.username,
+      loginTime: data.loginTime,
     }
 
     if (window.IntegriTestUtils) {
       window.IntegriTestUtils.StorageUtils.setItem("instructorSession", instructorSession)
-      window.IntegriTestUtils.AnalyticsUtils.trackEvent("instructor_login", { username })
+      window.IntegriTestUtils.AnalyticsUtils.trackEvent("instructor_login", { username: data.instructor.username })
     } else {
       localStorage.setItem("instructorSession", JSON.stringify(instructorSession))
     }
 
     showMessage("Login successful! Redirecting to dashboard...", "success")
-
     setTimeout(() => {
       window.location.href = "instructor-dashboard.html"
-    }, 1500)
-  }, 2000)
+    }, 1000)
+  } catch (err) {
+    hideLoading()
+    showMessage("Network error. Please try again.")
+  }
 })
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("[v0] IntegriTest system initialized")
-  console.log("[v0] Sample exam code: 1234")
-  console.log("[v0] Instructor credentials: admin/password")
+  console.log("[v0] API base:", API_BASE)
   console.log("[v0] Face detection system ready")
 
   window.addEventListener("beforeunload", () => {
