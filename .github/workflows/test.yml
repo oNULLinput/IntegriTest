@@ -25,48 +25,39 @@ jobs:
         node-version: '20'
         cache: 'npm'
     
-    - name: Check if package.json exists
+    - name: Verify package.json exists
       run: |
         if [ ! -f package.json ]; then
-          echo "package.json not found! Creating a basic one..."
-          cat > package.json << 'EOF'
-        {
-          "name": "integritest-system",
-          "version": "1.0.0",
-          "private": true,
-          "scripts": {
-            "dev": "next dev",
-            "build": "next build",
-            "start": "next start",
-            "lint": "next lint || echo 'Linting skipped - no config found'",
-            "test": "echo 'Tests passed - no test files found'"
-          },
-          "dependencies": {
-            "next": "14.2.25",
-            "react": "^19",
-            "react-dom": "^19"
-          },
-          "devDependencies": {
-            "@types/node": "^22",
-            "@types/react": "^18",
-            "@types/react-dom": "^18",
-            "typescript": "^5"
-          }
-        }
-        EOF
+          echo "❌ package.json not found in repository!"
+          exit 1
+        else
+          echo "✅ package.json found"
+          cat package.json | head -10
         fi
     
     - name: Install dependencies
-      run: npm install
+      run: |
+        echo "Installing dependencies..."
+        npm ci --prefer-offline --no-audit
+    
+    - name: Install missing Jest dependencies
+      run: |
+        npm install --save-dev jest-environment-jsdom @types/jest
     
     - name: Run linting
-      run: npm run lint || echo "Linting completed with warnings"
+      run: |
+        echo "Running ESLint..."
+        npm run lint || echo "⚠️ Linting completed with warnings"
     
     - name: Run unit tests
-      run: npm test || echo "Tests completed"
+      run: |
+        echo "Running Jest tests..."
+        npm test -- --passWithNoTests --verbose
     
     - name: Run build
-      run: npm run build || echo "Build completed"
+      run: |
+        echo "Building Next.js application..."
+        npm run build
 
   security:
     runs-on: ubuntu-latest
@@ -79,17 +70,16 @@ jobs:
       with:
         node-version: '20'
     
-    - name: Ensure package.json exists for security audit
-      run: |
-        if [ ! -f package.json ]; then
-          echo '{"name": "integritest-system", "version": "1.0.0", "dependencies": {}}' > package.json
-        fi
-    
     - name: Install dependencies for audit
-      run: npm install --package-lock-only
+      run: |
+        npm ci --prefer-offline --no-audit
     
     - name: Run security audit
-      run: npm audit --audit-level=high || echo "Security audit completed with findings"
+      run: |
+        echo "Running security audit..."
+        npm audit --audit-level=high || echo "⚠️ Security audit completed with findings"
     
-    - name: Check for vulnerabilities
-      run: npm audit fix --dry-run || echo "Vulnerability check completed"
+    - name: Check for high severity vulnerabilities
+      run: |
+        echo "Checking for critical vulnerabilities..."
+        npm audit --audit-level=critical || echo "⚠️ Critical vulnerability check completed"
