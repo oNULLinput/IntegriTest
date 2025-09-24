@@ -1,96 +1,90 @@
 // Supabase Client Configuration for IntegriTest System
-// Browser-compatible version using CDN
+// Using CDN approach with proper environment variable handling
 
 window.createSupabaseClient = () => {
-  const SUPABASE_URL = "https://yuaizdcaseywadutnynd.supabase.co"
-  const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1YWl6ZGNhc2V5d2FkdXRueW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0Mjc3NjQsImV4cCI6MjA3MzAwMzc2NH0._5QqlBNVI5jYlwy7R_PljyXw6nHhjjUKv-7lbEPwIco"
+  console.log("[v0] Creating Supabase client...")
+
+  // Wait for environment variables to be loaded
+  if (!window.ENV || !window.envReady) {
+    console.error("[v0] Environment variables not ready")
+    return null
+  }
+
+  const SUPABASE_URL = window.ENV.NEXT_PUBLIC_SUPABASE_URL
+  const SUPABASE_ANON_KEY = window.ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error("[v0] Missing Supabase credentials")
+    return null
+  }
 
   try {
-    if (
-      typeof window.supabase === "undefined" ||
-      !window.supabase ||
-      typeof window.supabase.createClient !== "function"
-    ) {
-      console.error("[v0] Supabase CDN not loaded properly. Make sure the script tag is included.")
+    // Check if Supabase CDN is loaded
+    if (typeof window.supabase === "undefined" || !window.supabase.createClient) {
+      console.error("[v0] Supabase CDN not loaded. Make sure the script tag is included.")
       return null
     }
 
-    // Create real Supabase client using CDN
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    console.log("[v0] Real Supabase client created with URL:", SUPABASE_URL)
-    return supabaseClient
+    // Create Supabase client
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    console.log("[v0] ✅ Supabase client created successfully")
+    return client
   } catch (error) {
     console.error("[v0] Error creating Supabase client:", error)
     return null
   }
 }
 
-if (typeof window !== "undefined") {
-  let initAttempts = 0
-  const maxAttempts = 20 // Try for up to 10 seconds
-
-  const initializeSupabase = () => {
-    initAttempts++
-
-    try {
-      if (
-        typeof window.supabase !== "undefined" &&
-        window.supabase &&
-        typeof window.supabase.createClient === "function"
-      ) {
-        const client = window.createSupabaseClient()
-        if (client) {
-          window.supabaseClient = client
-          window.supabaseReady = true
-          console.log("[v0] Supabase client initialized successfully after", initAttempts, "attempts")
-
-          // Dispatch custom event to notify other scripts
-          window.dispatchEvent(new CustomEvent("supabaseReady"))
-          return true
-        } else {
-          window.supabaseReady = false
-          console.error("[v0] Failed to create Supabase client")
-        }
-      } else {
-        if (initAttempts <= maxAttempts) {
-          console.log(
-            "[v0] Supabase CDN not yet available, retrying... (attempt",
-            initAttempts + "/" + maxAttempts + ")",
-          )
-          window.supabaseReady = false
-          // Retry after a short delay
-          setTimeout(initializeSupabase, 500)
-        } else {
-          console.error("[v0] Supabase CDN failed to load after", maxAttempts, "attempts")
-          window.supabaseReady = false
-        }
-      }
-    } catch (error) {
-      console.error("[v0] Error during Supabase initialization:", error)
-      window.supabaseReady = false
-
-      if (initAttempts <= maxAttempts) {
-        setTimeout(initializeSupabase, 500)
-      }
+// Initialize Supabase client when ready
+const initializeSupabase = async () => {
+  try {
+    // Wait for environment and Supabase CDN to be ready
+    if (!window.envReady || typeof window.supabase === "undefined") {
+      setTimeout(initializeSupabase, 100)
+      return
     }
 
+    const client = window.createSupabaseClient()
+    if (client) {
+      window.supabaseClient = client
+      window.supabaseReady = true
+      console.log("[v0] ✅ Supabase initialized successfully")
+
+      // Test connection
+      await testConnection()
+
+      // Notify other scripts
+      window.dispatchEvent(new CustomEvent("supabaseReady"))
+    }
+  } catch (error) {
+    console.error("[v0] Supabase initialization error:", error)
+    window.supabaseReady = false
+  }
+}
+
+// Test database connection
+async function testConnection() {
+  try {
+    console.log("[v0] Testing database connection...")
+    const { data, error } = await window.supabaseClient.from("instructors").select("id, username, full_name").limit(1)
+
+    if (error) {
+      console.error("[v0] Database connection test failed:", error.message)
+      return false
+    }
+
+    console.log("[v0] ✅ Database connection successful!")
+    console.log("[v0] Found instructors:", data?.length || 0)
+    return true
+  } catch (error) {
+    console.error("[v0] Connection test error:", error)
     return false
   }
+}
 
-  // Initialize immediately if DOM is ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      setTimeout(initializeSupabase, 100)
-    })
-  } else {
-    setTimeout(initializeSupabase, 100)
-  }
-
-  // Also try when window loads completely
-  window.addEventListener("load", () => {
-    if (!window.supabaseReady) {
-      setTimeout(initializeSupabase, 200)
-    }
-  })
+// Start initialization when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeSupabase)
+} else {
+  initializeSupabase()
 }
