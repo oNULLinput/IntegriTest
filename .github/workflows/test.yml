@@ -7,79 +7,38 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  build-test:
     runs-on: ubuntu-latest
-    
     env:
       CI: true
       NODE_ENV: test
       BASE_URL: http://localhost:3000
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-    
-    - name: Verify package.json exists
-      run: |
-        if [ ! -f package.json ]; then
-          echo "❌ package.json not found in repository!"
-          exit 1
-        else
-          echo "✅ package.json found"
-          cat package.json | head -10
-        fi
-    
-    - name: Install dependencies
-      run: |
-        echo "Installing dependencies..."
-        npm ci --prefer-offline --no-audit
-    
-    - name: Install missing Jest dependencies
-      run: |
-        npm install --save-dev jest-environment-jsdom @types/jest
-    
-    - name: Run linting
-      run: |
-        echo "Running ESLint..."
-        npm run lint || echo "⚠️ Linting completed with warnings"
-    
-    - name: Run unit tests
-      run: |
-        echo "Running Jest tests..."
-        npm test -- --passWithNoTests --verbose
-    
-    - name: Run build
-      run: |
-        echo "Building Next.js application..."
-        npm run build
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm test -- --passWithNoTests --verbose
+
+      - run: npm run build
 
   security:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    
-    - name: Install dependencies for audit
-      run: |
-        npm ci --prefer-offline --no-audit
-    
-    - name: Run security audit
-      run: |
-        echo "Running security audit..."
-        npm audit --audit-level=high || echo "⚠️ Security audit completed with findings"
-    
-    - name: Check for high severity vulnerabilities
-      run: |
-        echo "Checking for critical vulnerabilities..."
-        npm audit --audit-level=critical || echo "⚠️ Critical vulnerability check completed"
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: npm audit --audit-level=high
