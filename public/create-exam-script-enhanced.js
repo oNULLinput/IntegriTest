@@ -1,6 +1,11 @@
 const supabase = window.supabase.createClient(
-  "https://yuaizdcaseywadutnynd.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1YWl6ZGNhc2V5d2FkdXRueW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0Mjc3NjQsImV4cCI6MjA3MzAwMzc2NH0._5QqlBNVI5jYlwy7R_PljyXw6nHhjjUKv-7lbEPwIco",
+  window.location.hostname === "localhost"
+    ? "https://nsxuvuhrofqjyqunfzlk.supabase.co"
+    : window.ENV?.NEXT_PUBLIC_SUPABASE_URL || "https://nsxuvuhrofqjyqunfzlk.supabase.co",
+  window.location.hostname === "localhost"
+    ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zeHV2dWhyb2ZxanlxdW5memxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NDEwMjAsImV4cCI6MjA3NDIxNzAyMH0.iZ1imeqGu9V7bm2QdiXTWdmA18DkBBq9Rsa9aNAcMKw"
+    : window.ENV?.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zeHV2dWhyb2ZxanlxdW5memxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NDEwMjAsImV4cCI6MjA3NDIxNzAyMH0.iZ1imeqGu9V7bm2QdiXTWdmA18DkBBq9Rsa9aNAcMKw",
 )
 
 // Global variables
@@ -8,7 +13,7 @@ let questionCounter = 0
 const uploadedFiles = []
 let currentInstructor = null
 
-// DOM elements
+// DOM elements - with null checks
 const examForm = document.getElementById("create-exam-form")
 const questionsContainer = document.getElementById("questions-container")
 const fileUploadArea = document.getElementById("file-upload-area")
@@ -17,8 +22,16 @@ const uploadedFilesList = document.getElementById("uploaded-files")
 
 // Initialize the page
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("[v0] DOM loaded, initializing form...")
   initializeForm()
-  setupFileUpload()
+
+  if (fileUploadArea && fileInput && uploadedFilesList) {
+    console.log("[v0] File upload elements found, setting up file upload...")
+    setupFileUpload()
+  } else {
+    console.log("[v0] File upload elements not found, skipping file upload setup")
+  }
+
   checkEditMode()
   checkInstructorAuth()
 })
@@ -37,6 +50,13 @@ async function checkInstructorAuth() {
 
 // File Upload Handling
 function setupFileUpload() {
+  console.log("[v0] Setting up file upload functionality")
+
+  if (!fileUploadArea || !fileInput || !uploadedFilesList) {
+    console.log("[v0] Missing file upload elements, cannot setup file upload")
+    return
+  }
+
   // Drag and drop functionality
   fileUploadArea.addEventListener("dragover", (e) => {
     e.preventDefault()
@@ -66,6 +86,11 @@ function setupFileUpload() {
 }
 
 function handleFileUpload(files) {
+  if (!uploadedFilesList) {
+    console.log("[v0] Uploaded files list element not found")
+    return
+  }
+
   const allowedTypes = [".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx"]
   const maxSize = 10 * 1024 * 1024 // 10MB
 
@@ -101,11 +126,17 @@ function handleFileUpload(files) {
     updateUploadedFilesList()
   })
 
-  // Clear the file input
-  fileInput.value = ""
+  if (fileInput) {
+    fileInput.value = ""
+  }
 }
 
 function updateUploadedFilesList() {
+  if (!uploadedFilesList) {
+    console.log("[v0] Uploaded files list element not found")
+    return
+  }
+
   if (uploadedFiles.length === 0) {
     uploadedFilesList.innerHTML = '<p class="no-files">No files uploaded yet</p>'
     return
@@ -128,7 +159,7 @@ function updateUploadedFilesList() {
       </div>
       <button type="button" class="remove-file-btn" onclick="removeFile(${index})">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12m4-6v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
         </svg>
       </button>
     </div>
@@ -284,21 +315,18 @@ function checkEmptyQuestions() {
 
 // AI Question Generation (Enhanced for editing)
 function generateQuestions() {
-  if (uploadedFiles.length !== 3) {
-    alert("Please upload exactly 3 study materials first.")
-    return
-  }
-
-  const aiPrompt = document.getElementById("ai-prompt").value.trim()
+  const aiPrompt = document.getElementById("ai-prompt")?.value?.trim()
   if (!aiPrompt) {
-    alert("Please provide AI generation instructions.")
+    alert("AI question generation feature will be available with file upload integration.")
     return
   }
 
-  const questionCount = Number.parseInt(document.getElementById("question-count").value)
-  const difficulty = document.getElementById("difficulty-level").value
+  const questionCount = Number.parseInt(document.getElementById("question-count")?.value || "5")
+  const difficulty = document.getElementById("difficulty-level")?.value || "medium"
 
   const generateBtn = document.querySelector(".btn-generate")
+  if (!generateBtn) return
+
   const originalText = generateBtn.innerHTML
   generateBtn.innerHTML = `
     <svg class="btn-icon animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -367,44 +395,55 @@ function getQuestionTypeLabel(type) {
 // Form Handling
 function initializeForm() {
   const form = document.getElementById("create-exam-form")
-  form.addEventListener("submit", handleFormSubmission)
+  if (form) {
+    form.addEventListener("submit", handleFormSubmission)
+    console.log("[v0] Form event listener added successfully")
+  } else {
+    console.log("[v0] Create exam form not found")
+  }
 }
 
 function handleFormSubmission(e) {
   e.preventDefault()
+  console.log("[v0] Form submitted, saving to database...")
   saveExamToDatabase()
 }
 
 async function saveExamToDatabase() {
   try {
-    const examTitle = document.getElementById("exam-title").value.trim()
-    const examSubject = document.getElementById("exam-subject").value.trim()
-    const examInstructions = document.getElementById("exam-instructions").value.trim()
-    const examDuration = document.getElementById("exam-duration").value
-    const examCode = generateExamCode()
+    console.log("[v0] createExam function called")
+    console.log("[v0] Starting exam creation process")
+
+    const examTitleEl = document.getElementById("exam-title")
+    const examSubjectEl = document.getElementById("exam-subject")
+    const examInstructionsEl = document.getElementById("exam-instructions")
+    const examDurationEl = document.getElementById("exam-duration")
+
+    if (!examTitleEl || !examSubjectEl || !examDurationEl) {
+      alert("Required form elements not found. Please refresh the page.")
+      return
+    }
+
+    const examTitle = examTitleEl.value.trim()
+    const examSubject = examSubjectEl.value.trim()
+    const examInstructions = examInstructionsEl ? examInstructionsEl.value.trim() : ""
+    const examDuration = examDurationEl.value
 
     const showTimer = document.getElementById("show-timer")?.checked || false
     const autoSubmit = document.getElementById("auto-submit")?.checked || false
     const shuffleQuestions = document.getElementById("shuffle-questions")?.checked || false
 
-    console.log("[v0] Creating exam with instructor ID:", currentInstructor.id)
-    console.log("[v0] Exam data:", { examTitle, examSubject, examDuration, examCode })
-
-    const examData = {
-      title: examTitle,
-      description: examSubject,
-      duration: examDuration,
-      exam_code: examCode,
-      instructions: examInstructions,
-      show_timer: showTimer,
-      auto_submit: autoSubmit,
-      shuffle_questions: shuffleQuestions,
-      instructor_id: currentInstructor.id, // Explicitly set instructor_id
-      is_active: true, // Ensure exam is active by default
-    }
+    console.log("[v0] Form data collected:", {
+      examTitle,
+      examSubject,
+      examDuration,
+      shuffleQuestions,
+    })
 
     const questions = []
     const questionItems = document.querySelectorAll(".question-item")
+
+    console.log("[v0] Found", questionItems.length, "questions")
 
     questionItems.forEach((questionDiv) => {
       const questionId = questionDiv.dataset.questionId
@@ -414,8 +453,8 @@ async function saveExamToDatabase() {
       if (!questionText) return
 
       const questionData = {
-        question_text: questionText,
-        question_type: questionType,
+        question: questionText, // Use 'question' instead of 'question_text' to match database schema
+        type: questionType === "multiple-choice" ? "multiple_choice" : questionType, // Normalize type to match database
         points: Number.parseInt(questionDiv.querySelector(`[name="question_${questionId}_points"]`)?.value) || 1,
       }
 
@@ -424,19 +463,26 @@ async function saveExamToDatabase() {
         const options = []
         const correctAnswer = questionDiv.querySelector(`[name="question_${questionId}_correct"]:checked`)?.value
 
+        console.log(`[v0] Processing multiple choice question ${questionId}`)
+        console.log(`[v0] Correct answer radio value:`, correctAnswer)
+
         for (let i = 0; i < 4; i++) {
           const optionText = questionDiv.querySelector(`[name="question_${questionId}_option_${i}"]`)?.value
-          if (optionText) {
-            options.push({
-              option_letter: ["A", "B", "C", "D"][i],
-              option_text: optionText,
-              is_correct: ["A", "B", "C", "D"][i] === correctAnswer,
-            })
+          if (optionText && optionText.trim()) {
+            options.push(optionText.trim()) // Ensure options are clean strings
+            console.log(`[v0] Added option ${i}:`, optionText.trim())
           }
         }
 
-        questionData.correct_answer = correctAnswer
-        questionData.options = options
+        console.log(`[v0] Final options array:`, options)
+        console.log(`[v0] Final correct answer:`, correctAnswer)
+
+        if (correctAnswer && options[correctAnswer]) {
+          questionData.correct_answer = options[correctAnswer]
+        } else {
+          questionData.correct_answer = correctAnswer // fallback to letter
+        }
+        questionData.options = options // Store as simple array of strings
       } else if (questionType === "identification" || questionType === "fill-blanks") {
         questionData.correct_answer = questionDiv.querySelector(`[name="question_${questionId}_answer"]`)?.value
       } else if (questionType === "essay") {
@@ -446,43 +492,79 @@ async function saveExamToDatabase() {
       questions.push(questionData)
     })
 
-    const { data: examResult, error: examError } = await supabase
-      .from("exams")
-      .insert([
-        {
-          ...examData,
-          total_questions: questions.length,
-          total_points: questions.reduce((sum, q) => sum + q.points, 0),
-          created_at: new Date().toISOString(),
-        },
-      ])
-      .select()
+    const examData = {
+      title: examTitle,
+      description: examSubject,
+      duration: Number.parseInt(examDuration),
+      instructions: examInstructions,
+      show_timer: showTimer,
+      auto_submit: autoSubmit,
+      shuffle_questions: shuffleQuestions,
+      questions: questions, // Include questions in the exam data
+      instructor_id: currentInstructor.id, // Include instructor ID
+    }
 
-    if (examError) {
-      console.error("[v0] Error creating exam:", examError)
+    console.log("[v0] Final exam data being sent to database:", JSON.stringify(examData, null, 2))
+
+    console.log("[v0] Creating exam:", examData.title)
+    const result = await window.examOperations.createExam(examData)
+
+    if (!result) {
       alert("Failed to create exam. Please try again.")
       return
     }
 
-    console.log("[v0] Exam created successfully:", examResult)
+    console.log("[v0] Exam creation result:", {
+      id: result.id,
+      title: result.title,
+      description: result.description,
+      duration: result.duration,
+      exam_code: result.exam_code,
+    })
+    console.log("[v0] Exam created successfully with code:", result.exam_code)
 
-    localStorage.removeItem("dashboardCache")
-    localStorage.setItem("examCreated", "true")
+    showSuccessNotification(`Exam "${examData.title}" created successfully!`, `Access code: ${result.exam_code}`)
 
-    alert("Exam created successfully!")
-    window.location.href = "instructor-dashboard.html"
+    // Redirect after short delay
+    setTimeout(() => {
+      window.location.href = "instructor-dashboard.html"
+    }, 2000)
   } catch (error) {
     console.error("Error creating exam:", error)
     alert("Failed to create exam. Please try again.")
   }
 }
 
-// Navigation Functions
-function goBackToDashboard() {
-  window.location.href = "instructor-dashboard.html"
+function showSuccessNotification(title, message) {
+  // Create notification element
+  const notification = document.createElement("div")
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    max-width: 400px;
+  `
+  notification.innerHTML = `
+    <div style="font-weight: 600; margin-bottom: 4px;">${title}</div>
+    <div style="font-size: 14px; opacity: 0.9;">${message}</div>
+  `
+
+  document.body.appendChild(notification)
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification)
+    }
+  }, 3000)
 }
 
-// Utility Functions
 function generateExamCode() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   let code = ""
@@ -492,60 +574,12 @@ function generateExamCode() {
   return code
 }
 
-function showExamCreatedModal(title, code) {
-  const modal = document.createElement("div")
-  modal.className = "modal-overlay"
-  modal.innerHTML = `
-    <div class="modal-content success-modal">
-      <div class="success-icon">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-      </div>
-      <h2>Exam Created Successfully!</h2>
-      <p>Your exam "<strong>${title}</strong>" has been created.</p>
-      <div class="exam-code-display">
-        <label>Exam Access Code:</label>
-        <div class="code-value">${code}</div>
-        <button type="button" onclick="copyToClipboard('${code}')" class="copy-btn">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-          </svg>
-          Copy Code
-        </button>
-      </div>
-      <p class="code-instruction">Share this code with students to access the exam.</p>
-      <div class="modal-actions">
-        <button type="button" onclick="goBackToDashboard()" class="btn-primary">Back to Dashboard</button>
-        <button type="button" onclick="createAnotherExam()" class="btn-secondary">Create Another Exam</button>
-      </div>
-    </div>
-  `
-
-  document.body.appendChild(modal)
-  setTimeout(() => modal.classList.add("show"), 10)
+// Navigation Functions
+function goBackToDashboard() {
+  window.location.href = "instructor-dashboard.html"
 }
 
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    const copyBtn = document.querySelector(".copy-btn")
-    const originalText = copyBtn.innerHTML
-    copyBtn.innerHTML = `
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-      </svg>
-      Copied!
-    `
-    setTimeout(() => {
-      copyBtn.innerHTML = originalText
-    }, 2000)
-  })
-}
-
-function createAnotherExam() {
-  window.location.reload()
-}
-
+// Utility Functions
 function formatFileSize(bytes) {
   if (bytes === 0) return "0 Bytes"
   const k = 1024
@@ -633,7 +667,7 @@ function addExistingQuestion(questionData) {
 
   // Generate type-specific HTML based on question type
   switch (questionData.type) {
-    case "multiple-choice":
+    case "multiple_choice":
       typeSpecificHtml = `
         <div class="options-container">
           <h5>Answer Options:</h5>
@@ -646,7 +680,7 @@ function addExistingQuestion(questionData) {
               <div class="option-item">
                 <input type="text" name="question_${questionCounter}_option_${index}" value="${option}" placeholder="Option ${index + 1}" required>
                 <label>
-                  <input type="radio" name="question_${questionCounter}_correct" value="${index}" ${questionData.correctAnswer === index ? "checked" : ""}>
+                  <input type="radio" name="question_${questionCounter}_correct" value="${index}" ${questionData.correct_answer === option ? "checked" : ""}>
                   Correct Answer
                 </label>
                 <button type="button" onclick="removeOption(${questionCounter}, ${index})">Remove</button>
@@ -666,26 +700,26 @@ function addExistingQuestion(questionData) {
       typeSpecificHtml = `
         <div class="form-group">
           <label>Correct Answer:</label>
-          <input type="text" name="question_${questionCounter}_answer" value="${questionData.correctAnswer || ""}" placeholder="Enter the correct answer" required>
+          <input type="text" name="question_${questionCounter}_answer" value="${questionData.correct_answer || ""}" placeholder="Enter the correct answer" required>
         </div>
         <div class="form-group">
           <label>
-            <input type="checkbox" name="question_${questionCounter}_case_sensitive" ${questionData.caseSensitive ? "checked" : ""}>
+            <input type="checkbox" name="question_${questionCounter}_case_sensitive" ${questionData.case_sensitive ? "checked" : ""}>
             Case Sensitive
           </label>
         </div>
       `
       break
 
-    case "fill-blanks":
+    case "fill_blanks":
       typeSpecificHtml = `
         <div class="form-group">
           <label>Correct Answers (comma-separated):</label>
-          <input type="text" name="question_${questionCounter}_answers" value="${questionData.correctAnswers ? questionData.correctAnswers.join(", ") : ""}" placeholder="answer1, answer2, answer3" required>
+          <input type="text" name="question_${questionCounter}_answers" value="${questionData.correct_answer ? questionData.correct_answer.join(", ") : ""}" placeholder="answer1, answer2, answer3" required>
         </div>
         <div class="form-group">
           <label>
-            <input type="checkbox" name="question_${questionCounter}_case_sensitive" ${questionData.caseSensitive ? "checked" : ""}>
+            <input type="checkbox" name="question_${questionCounter}_case_sensitive" ${questionData.case_sensitive ? "checked" : ""}>
             Case Sensitive
           </label>
         </div>
@@ -696,15 +730,15 @@ function addExistingQuestion(questionData) {
       typeSpecificHtml = `
         <div class="form-group">
           <label>Minimum Words:</label>
-          <input type="number" name="question_${questionCounter}_min_words" value="${questionData.minWords || 0}" min="0">
+          <input type="number" name="question_${questionCounter}_min_words" value="${questionData.min_words || 0}" min="0">
         </div>
         <div class="form-group">
           <label>Maximum Words:</label>
-          <input type="number" name="question_${questionCounter}_max_words" value="${questionData.maxWords || 0}" min="0">
+          <input type="number" name="question_${questionCounter}_max_words" value="${questionData.max_words || 0}" min="0">
         </div>
         <div class="form-group">
           <label>Rubric/Grading Criteria:</label>
-          <textarea name="question_${questionCounter}_rubric" placeholder="Enter grading criteria...">${questionData.rubric || ""}</textarea>
+          <textarea name="question_${questionCounter}_rubric" placeholder="Enter grading criteria...">${questionData.correct_answer || ""}</textarea>
         </div>
       `
       break
@@ -718,15 +752,15 @@ function addExistingQuestion(questionData) {
     <div class="form-group">
       <label>Question Type:</label>
       <select name="question_${questionCounter}_type" onchange="updateQuestionType(${questionCounter})" required>
-        <option value="multiple-choice" ${questionData.type === "multiple-choice" ? "selected" : ""}>Multiple Choice</option>
+        <option value="multiple-choice" ${questionData.type === "multiple_choice" ? "selected" : ""}>Multiple Choice</option>
         <option value="identification" ${questionData.type === "identification" ? "selected" : ""}>Identification</option>
-        <option value="fill-blanks" ${questionData.type === "fill-blanks" ? "selected" : ""}>Fill in Blanks</option>
+        <option value="fill-blanks" ${questionData.type === "fill_blanks" ? "selected" : ""}>Fill in Blanks</option>
         <option value="essay" ${questionData.type === "essay" ? "selected" : ""}>Essay</option>
       </select>
     </div>
     <div class="form-group">
       <label>Question Text:</label>
-      <textarea name="question_${questionCounter}_text" placeholder="Enter your question here..." required>${questionData.text || ""}</textarea>
+      <textarea name="question_${questionCounter}_text" placeholder="Enter your question here..." required>${questionData.question || ""}</textarea>
     </div>
     ${typeSpecificHtml}
     <div class="form-group">
@@ -759,19 +793,6 @@ async function completeEditing() {
   const autoSubmit = document.getElementById("auto-submit").checked
   const shuffleQuestions = document.getElementById("shuffle-questions").checked
 
-  // Validate required fields
-  if (!examTitle) {
-    alert("Please enter an exam title.")
-    document.getElementById("exam-title").focus()
-    return
-  }
-
-  if (!examDuration || examDuration < 5) {
-    alert("Please enter a valid exam duration (minimum 5 minutes).")
-    document.getElementById("exam-duration").focus()
-    return
-  }
-
   // Collect questions data using same logic as createExam
   const questions = []
   const questionItems = document.querySelectorAll(".question-item")
@@ -784,8 +805,8 @@ async function completeEditing() {
     if (!questionText) return
 
     const questionData = {
-      question_text: questionText,
-      question_type: questionType,
+      question: questionText, // Use 'question' instead of 'question_text'
+      type: questionType === "multiple-choice" ? "multiple_choice" : questionType, // Normalize type
       points: Number.parseInt(questionDiv.querySelector(`[name="question_${questionId}_points"]`)?.value) || 1,
     }
 
@@ -794,19 +815,26 @@ async function completeEditing() {
       const options = []
       const correctAnswer = questionDiv.querySelector(`[name="question_${questionId}_correct"]:checked`)?.value
 
+      console.log(`[v0] Processing multiple choice question ${questionId}`)
+      console.log(`[v0] Correct answer radio value:`, correctAnswer)
+
       for (let i = 0; i < 4; i++) {
         const optionText = questionDiv.querySelector(`[name="question_${questionId}_option_${i}"]`)?.value
-        if (optionText) {
-          options.push({
-            option_letter: ["A", "B", "C", "D"][i],
-            option_text: optionText,
-            is_correct: ["A", "B", "C", "D"][i] === correctAnswer,
-          })
+        if (optionText && optionText.trim()) {
+          options.push(optionText.trim()) // Ensure options are clean strings
+          console.log(`[v0] Added option ${i}:`, optionText.trim())
         }
       }
 
-      questionData.correct_answer = correctAnswer
-      questionData.options = options
+      console.log(`[v0] Final options array:`, options)
+      console.log(`[v0] Final correct answer:`, correctAnswer)
+
+      if (correctAnswer && options[correctAnswer]) {
+        questionData.correct_answer = options[correctAnswer]
+      } else {
+        questionData.correct_answer = correctAnswer // fallback to letter
+      }
+      questionData.options = options // Store as simple array of strings
     } else if (questionType === "identification" || questionType === "fill-blanks") {
       questionData.correct_answer = questionDiv.querySelector(`[name="question_${questionId}_answer"]`)?.value
     } else if (questionType === "essay") {
@@ -818,7 +846,6 @@ async function completeEditing() {
 
   // Validate exam has questions
   if (questions.length === 0) {
-    alert("Please add at least one question to the exam.")
     return
   }
 
@@ -831,8 +858,7 @@ async function completeEditing() {
         description: examSubject,
         duration: Number.parseInt(examDuration),
         instructions: examInstructions,
-        total_questions: questions.length,
-        total_points: questions.reduce((sum, q) => sum + q.points, 0),
+        questions: questions, // Store properly formatted questions
         updated_at: new Date().toISOString(),
         show_timer: showTimer,
         auto_submit: autoSubmit,

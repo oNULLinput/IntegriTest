@@ -1,25 +1,36 @@
 // Supabase Client Configuration for IntegriTest System
-// Browser-compatible version using CDN
+// Browser-compatible version using environment variables with singleton pattern
+
+let supabaseClientInstance = null
 
 window.createSupabaseClient = () => {
-  const SUPABASE_URL = "https://yuaizdcaseywadutnynd.supabase.co"
+  // Return existing instance if already created
+  if (supabaseClientInstance) {
+    console.log("[v0] Returning existing Supabase client instance")
+    return supabaseClientInstance
+  }
+
+  const SUPABASE_URL = "https://nsxuvuhrofqjyqunfzlk.supabase.co"
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1YWl6ZGNhc2V5d2FkdXRueW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0Mjc3NjQsImV4cCI6MjA3MzAwMzc2NH0._5QqlBNVI5jYlwy7R_PljyXw6nHhjjUKv-7lbEPwIco"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zeHV2dWhyb2ZxanlxdW5memxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NDEwMjAsImV4cCI6MjA3NDIxNzAyMH0.iZ1imeqGu9V7bm2QdiXTWdmA18DkBBq9Rsa9aNAcMKw"
+
+  if (typeof window.supabase === "undefined" || typeof window.supabase.createClient !== "function") {
+    console.error("[v0] Supabase CDN not loaded properly. Make sure the script tag is included.")
+    return null
+  }
 
   try {
-    if (
-      typeof window.supabase === "undefined" ||
-      !window.supabase ||
-      typeof window.supabase.createClient !== "function"
-    ) {
-      console.error("[v0] Supabase CDN not loaded properly. Make sure the script tag is included.")
-      return null
-    }
+    supabaseClientInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        storage: window.localStorage,
+        storageKey: "integritest-supabase-auth",
+        autoRefreshToken: true,
+        persistSession: true,
+      },
+    })
 
-    // Create real Supabase client using CDN
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    console.log("[v0] Real Supabase client created with URL:", SUPABASE_URL)
-    return supabaseClient
+    console.log("[v0] Supabase client created successfully with singleton pattern")
+    return supabaseClientInstance
   } catch (error) {
     console.error("[v0] Error creating Supabase client:", error)
     return null
@@ -27,70 +38,26 @@ window.createSupabaseClient = () => {
 }
 
 if (typeof window !== "undefined") {
-  let initAttempts = 0
-  const maxAttempts = 20 // Try for up to 10 seconds
-
   const initializeSupabase = () => {
-    initAttempts++
-
-    try {
-      if (
-        typeof window.supabase !== "undefined" &&
-        window.supabase &&
-        typeof window.supabase.createClient === "function"
-      ) {
-        const client = window.createSupabaseClient()
-        if (client) {
-          window.supabaseClient = client
-          window.supabaseReady = true
-          console.log("[v0] Supabase client initialized successfully after", initAttempts, "attempts")
-
-          // Dispatch custom event to notify other scripts
-          window.dispatchEvent(new CustomEvent("supabaseReady"))
-          return true
-        } else {
-          window.supabaseReady = false
-          console.error("[v0] Failed to create Supabase client")
-        }
-      } else {
-        if (initAttempts <= maxAttempts) {
-          console.log(
-            "[v0] Supabase CDN not yet available, retrying... (attempt",
-            initAttempts + "/" + maxAttempts + ")",
-          )
-          window.supabaseReady = false
-          // Retry after a short delay
-          setTimeout(initializeSupabase, 500)
-        } else {
-          console.error("[v0] Supabase CDN failed to load after", maxAttempts, "attempts")
-          window.supabaseReady = false
-        }
+    if (typeof window.supabase !== "undefined" && typeof window.supabase.createClient === "function") {
+      window.supabaseClient = window.createSupabaseClient()
+      if (window.supabaseClient) {
+        console.log("[v0] Supabase client initialized successfully")
+        // Test connection
+        window.supabaseClient
+          .from("exams")
+          .select("count", { count: "exact", head: true })
+          .then(() => console.log("[v0] Database connection verified"))
+          .catch((err) => console.error("[v0] Database connection test failed:", err))
       }
-    } catch (error) {
-      console.error("[v0] Error during Supabase initialization:", error)
-      window.supabaseReady = false
-
-      if (initAttempts <= maxAttempts) {
-        setTimeout(initializeSupabase, 500)
-      }
+    } else {
+      console.error("[v0] Supabase CDN not available")
     }
-
-    return false
   }
 
-  // Initialize immediately if DOM is ready
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      setTimeout(initializeSupabase, 100)
-    })
+    document.addEventListener("DOMContentLoaded", initializeSupabase)
   } else {
-    setTimeout(initializeSupabase, 100)
+    initializeSupabase()
   }
-
-  // Also try when window loads completely
-  window.addEventListener("load", () => {
-    if (!window.supabaseReady) {
-      setTimeout(initializeSupabase, 200)
-    }
-  })
 }

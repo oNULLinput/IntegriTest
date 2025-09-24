@@ -2,145 +2,55 @@
 // Handles all instructor-related database operations
 
 window.instructorOperations = {
-  async testSupabaseConnection() {
-    try {
-      console.log("[v0] Testing Supabase connection...")
-
-      if (!window.supabaseClient) {
-        console.error("[v0] Supabase client not initialized")
-        return false
-      }
-
-      // Test basic connection by querying all instructors
-      const { data, error } = await window.supabaseClient.from("instructors").select("*")
-
-      if (error) {
-        console.error("[v0] Supabase connection test failed:", error)
-        return false
-      }
-
-      console.log("[v0] ✅ Supabase connection successful!")
-      console.log("[v0] Found instructors in database:", data)
-      return true
-    } catch (error) {
-      console.error("[v0] Connection test error:", error)
-      return false
-    }
-  },
-
+  // Authenticate instructor using Supabase
   async authenticateInstructor(username, password) {
     try {
-      console.log("[v0] Authenticating instructor:", username)
-      console.log("[v0] - Username:", username, "(length:", username.length, ")")
-      console.log("[v0] - Password:", "****", "(length:", password.length, ")")
-      console.log("[v0] - Username type:", typeof username)
-      console.log("[v0] - Password type:", typeof password)
-      console.log("[v0] - Username exact value:", JSON.stringify(username))
-      console.log("[v0] - Password exact value:", JSON.stringify(password))
+      console.log("[v0] Authenticating instructor with Supabase:", username)
 
-      console.log("[v0] Checking if instructorOperations is available:", typeof window.instructorOperations)
-      console.log("[v0] Checking if Supabase client is available:", typeof window.supabaseClient)
-
-      // Wait for Supabase client to be ready with improved logic
-      let attempts = 0
-      const maxWaitAttempts = 30 // Wait up to 15 seconds
-
-      console.log("[v0] Starting authentication process...")
-
-      while (!window.supabaseReady && attempts < maxWaitAttempts) {
-        console.log(
-          "[v0] Waiting for Supabase client to initialize... (attempt",
-          attempts + 1,
-          "/",
-          maxWaitAttempts,
-          ")",
-        )
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        attempts++
+      if (!window.supabase) {
+        console.error("[v0] Supabase client not initialized - check credentials in client.js")
+        throw new Error("Supabase client not available")
       }
 
-      if (!window.supabaseClient || !window.supabaseReady) {
-        console.error("[v0] Supabase client not initialized after waiting")
-        throw new Error("Database connection not available. Please refresh the page and try again.")
-      }
+      console.log("[v0] Supabase client initialized, querying instructors table...")
 
-      console.log("[v0] Supabase client is ready, proceeding with authentication...")
-
-      // Query the database for matching instructor
-      const { data: instructor, error } = await window.supabaseClient
+      const { data: instructors, error } = await window.supabase
         .from("instructors")
         .select("*")
         .eq("username", username)
         .eq("password", password)
-        .maybeSingle()
+        .single()
 
       if (error) {
-        console.error("[v0] Authentication database error:", error)
-        throw new Error("Database error occurred during login")
+        console.error("[v0] Supabase authentication error:", error)
+        console.log("[v0] Error details:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        })
+
+        if (error.code === "PGRST116" || error.message.includes('relation "instructors" does not exist')) {
+          console.log("[v0] Instructors table doesn't exist. Please create the table first.")
+          return null
+        }
+
+        return null
       }
 
-      console.log("[v0] Authentication result:", instructor ? "SUCCESS" : "FAILED")
-
-      if (instructor) {
-        console.log("[v0] ✅ Authentication successful for:", instructor.username)
+      if (instructors) {
+        console.log("[v0] Instructor authenticated successfully from Supabase:", instructors.username)
         // Don't return password in response
-        const { password: _, ...instructorData } = instructor
+        const { password: _, ...instructorData } = instructors
         return instructorData
       }
 
-      console.log("[v0] ❌ Authentication failed - no instructor returned")
+      console.log("[v0] No instructor found in Supabase with provided credentials")
       return null
     } catch (error) {
       console.error("[v0] Error authenticating instructor:", error)
-      throw error
-    }
-  },
-
-  // Create new instructor in Supabase database
-  async createInstructorInDatabase(instructorData) {
-    try {
-      console.log("[v0] Creating instructor in Supabase:", instructorData.username)
-
-      if (!window.supabaseClient) {
-        throw new Error("Supabase client not available")
-      }
-
-      const { data: existingInstructor, error: checkError } = await window.supabaseClient
-        .from("instructors")
-        .select("username")
-        .eq("username", instructorData.username)
-        .single()
-
-      if (existingInstructor) {
-        throw new Error(`Username "${instructorData.username}" already exists`)
-      }
-
-      if (checkError && checkError.code !== "PGRST116") {
-        console.error("[v0] Error checking existing instructor:", checkError)
-        throw checkError
-      }
-
-      const instructor = {
-        username: instructorData.username,
-        password: instructorData.password, // In real app, this should be hashed
-        full_name: instructorData.full_name,
-        email: instructorData.email,
-      }
-
-      const { data, error } = await window.supabaseClient.from("instructors").insert([instructor]).select().single()
-
-      if (error) {
-        console.error("[v0] Error creating instructor in Supabase:", error)
-        throw error
-      }
-
-      console.log("[v0] Instructor created successfully in Supabase:", data.username, "with ID:", data.id)
-      // Return without password
-      const { password: _, ...instructorResponse } = data
-      return instructorResponse
-    } catch (error) {
-      console.error("[v0] Error creating instructor in database:", error)
-      throw error
+      console.log("[v0] Authentication failed. Please check your database connection and credentials.")
+      return null
     }
   },
 

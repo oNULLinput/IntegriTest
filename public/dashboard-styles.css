@@ -187,6 +187,41 @@
   transform: scaleX(1);
 }
 
+/* Added real-time visual feedback styles for stat cards */
+.stat-card.stat-updated {
+  animation: statUpdate 2s ease-in-out;
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), var(--shadow-lg);
+}
+
+.stat-card.stat-alert {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.2), var(--shadow-lg);
+}
+
+@keyframes statUpdate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Added pulse animation for connecting status */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 .stat-icon {
   width: 4rem;
   height: 4rem;
@@ -245,6 +280,210 @@
   font-weight: 500;
 }
 
+/* Added security alert popup styles for real-time notifications */
+.security-alert-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.alert-content {
+  background: white;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #3b82f6;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 400px;
+  min-width: 300px;
+}
+
+.alert-icon {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.alert-message {
+  flex: 1;
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert-close:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Added notification system styles for real-time updates */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  animation: slideInRight 0.3s ease-out;
+  max-width: 400px;
+  min-width: 300px;
+}
+
+.notification-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #3b82f6;
+}
+
+.notification-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 4px solid #22c55e;
+}
+
+.notification-warning {
+  background: #fffbeb;
+  border: 1px solid #fed7aa;
+  border-left: 4px solid #f59e0b;
+}
+
+.notification-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+}
+
+.notification-content {
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-message {
+  flex: 1;
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-close:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Added error and connection banner styles */
+.error-banner,
+.connection-error-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  background: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.error-icon {
+  width: 20px;
+  height: 20px;
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.error-content span {
+  color: #991b1b;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Added real-time status indicators */
+.real-time-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-connected {
+  background: #22c55e;
+}
+
+.status-connecting {
+  background: #f59e0b;
+}
+
+.status-disconnected {
+  background: #ef4444;
+}
+
 /* Current Exams Section */
 .current-exams-section {
   margin-bottom: 4rem;
@@ -287,6 +526,12 @@
 
 .exam-card:hover::before {
   transform: scaleX(1);
+}
+
+.exam-card.live-update {
+  animation: liveUpdate 1s ease-in-out;
+  border-color: rgba(34, 197, 94, 0.4);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.2), var(--shadow-lg);
 }
 
 .exam-header {
@@ -373,6 +618,11 @@
   line-height: 1;
 }
 
+.stat-value.updating {
+  animation: counterUpdate 0.5s ease-in-out;
+  color: #22c55e;
+}
+
 .stat-label {
   font-size: 0.75rem;
   color: var(--muted-foreground);
@@ -407,10 +657,24 @@
   gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  /* Added animation for new activity items */
+  animation: fadeInUp 0.5s ease-out;
 }
 
 .activity-item:last-child {
   border-bottom: none;
+}
+
+/* Added fade-in animation for new activity items */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .activity-icon {
@@ -435,6 +699,14 @@
 
 .activity-icon.exam {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.activity-icon.student {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.activity-icon.security {
+  background: linear-gradient(135deg, var(--destructive), #f87171);
 }
 
 .activity-icon.alert {
@@ -530,6 +802,17 @@
   .dashboard-main {
     padding: 2rem 0;
   }
+
+  /* Mobile responsive styles for security alerts */
+  .security-alert-popup {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .alert-content {
+    min-width: auto;
+  }
 }
 
 @media (max-width: 480px) {
@@ -547,5 +830,30 @@
 
   .section-title {
     font-size: 1.5rem;
+  }
+}
+
+@keyframes liveUpdate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes counterUpdate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+    color: #16a34a;
+  }
+  100% {
+    transform: scale(1);
   }
 }

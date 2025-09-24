@@ -1,0 +1,22 @@
+/* Added CSS for correct answer visual feedback */
+.correct-answer-selected {
+  background-color: #f0fdf4 !important;
+  border: 2px solid #059669 !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1) !important;
+}
+
+.correct-indicator {
+  color: #059669 !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  margin-left: 8px !important;
+}
+
+/* Enhanced radio button styling */
+.option-label input[type="radio"]:checked + .option-letter {
+  color: #059669;
+  font-weight: 600;
+}
