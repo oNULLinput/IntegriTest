@@ -118,14 +118,14 @@
           </div>
         </section>
 
-        <!-- AI-Powered Exam Generation -->
+        <!-- Automated Exam Generation -->
         <section class="form-section">
           <div class="section-header">
-            <h2 class="section-title font-heading">AI-Powered Exam Generation</h2>
+            <h2 class="section-title font-heading">Automated Exam Generation</h2>
             <p class="section-description">Upload materials and specify requirements to automatically generate exam questions</p>
           </div>
           
-          <div class="ai-generation-section">
+          <div class="generation-section">
             <!-- Improved file upload area with drag and drop functionality -->
             <div class="upload-area" id="upload-area">
               <div class="upload-content">
@@ -155,9 +155,9 @@
               <div class="files-list" id="files-list"></div>
             </div>
 
-            <!-- Enhanced AI instruction text area with better styling and validation -->
-            <div class="form-group full-width ai-instructions" id="ai-prompt-section" style="display: none;">
-              <label for="ai-prompt">AI Generation Instructions *</label>
+            <!-- Enhanced instruction text area with better styling and validation -->
+            <div class="form-group full-width instructions" id="prompt-section" style="display: none;">
+              <label for="generation-prompt">Generation Instructions *</label>
               <div class="instruction-examples">
                 <p><strong>Example instructions:</strong></p>
                 <ul>
@@ -166,23 +166,23 @@
                   <li>"Make 25 questions: mix of all 4 types (multiple choice, identification, fill-in-blanks, essay)"</li>
                 </ul>
               </div>
-              <textarea id="ai-prompt" name="aiPrompt" rows="5" disabled placeholder="Specify your exam requirements here...&#10;&#10;Include:&#10;• Number of questions (e.g., 20 questions)&#10;• Question types (multiple choice, identification, fill-in-blanks, essay)&#10;• Difficulty level and specific topics to focus on"></textarea>
+              <textarea id="generation-prompt" name="generationPrompt" rows="5" disabled placeholder="Specify your exam requirements here...&#10;&#10;Include:&#10;• Number of questions (e.g., 20 questions)&#10;• Question types (multiple choice, identification, fill-in-blanks, essay)&#10;• Difficulty level and specific topics to focus on"></textarea>
               <div class="instruction-counter">
                 <span id="char-count">0</span>/500 characters
               </div>
-              <small class="form-help">Tell the AI exactly what type of exam to create. Be specific about question types and quantities.</small>
+              <small class="form-help">Specify exactly what type of exam to create. Be specific about question types and quantities.</small>
             </div>
             
-            <!-- Simplified AI options with better organization -->
-            <div class="ai-options" id="ai-options" style="display: none;">
-              <div class="ai-generate-section">
+            <!-- Simplified generation options with better organization -->
+            <div class="generation-options" id="generation-options" style="display: none;">
+              <div class="generate-section">
                 <button type="button" class="btn btn-primary btn-generate" id="generate-btn" onclick="generateQuestions()" disabled>
                   <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                   </svg>
-                  Generate Questions with AI
+                  Generate Questions Automatically
                 </button>
-                <p class="generate-help">AI will analyze your uploaded materials and instructions to create customized questions</p>
+                <p class="generate-help">The system will analyze your uploaded materials and instructions to create customized questions</p>
               </div>
             </div>
           </div>
@@ -192,7 +192,7 @@
         <section class="form-section">
           <div class="section-header">
             <h2 class="section-title font-heading">Manual Question Creation</h2>
-            <p class="section-description">Add questions manually or edit AI-generated ones</p>
+            <p class="section-description">Add questions manually or edit auto-generated ones</p>
             <!-- Better organized question type buttons -->
             <div class="question-type-buttons">
               <button type="button" class="btn btn-outline btn-sm" onclick="addQuestion('multiple-choice')">
@@ -236,7 +236,7 @@
                 </svg>
               </div>
               <h4>No Questions Added Yet</h4>
-              <p>Upload materials for AI generation or click the buttons above to add questions manually</p>
+              <p>Upload materials for automatic generation or click the buttons above to add questions manually</p>
             </div>
           </div>
         </section>

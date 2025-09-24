@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLOv8 System Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .test-section h2 {
+            margin: 0 0 20px 0;
+            color: #2196F3;
+            font-size: 1.5em;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .button.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .button.danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .status-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #2196F3;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .status-card.success {
+            border-left-color: #4CAF50;
+        }
+
+        .status-card.error {
+            border-left-color: #f44336;
+        }
+
+        .status-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.success {
+            background: #4CAF50;
+        }
+
+        .status-indicator.error {
+            background: #f44336;
+        }
+
+        .status-indicator.pending {
+            background: #FF9800;
+        }
+
+        .log-container {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .test-results {
+            margin-top: 30px;
+        }
+
+        .test-result {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .test-result.passed {
+            border-left-color: #4CAF50;
+        }
+
+        .test-result.failed {
+            border-left-color: #f44336;
+        }
+
+        .test-details {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .camera-preview {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #2196F3);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 YOLOv8 System Test</h1>
+            <p>Comprehensive testing for YOLO integration with system integrity protection</p>
+        </div>
+
+        <div class="content">
+             Quick Status 
+            <div class="test-section">
+                <h2>System Status</h2>
+                <div class="status-grid" id="statusGrid">
+                    <div class="status-card" id="environmentStatus">
+                        <h3><span class="status-indicator pending"></span>Environment</h3>
+                        <p>Checking dependencies...</p>
+                    </div>
+                    <div class="status-card" id="cameraStatus">
+                        <h3><span class="status-indicator pending"></span>Camera</h3>
+                        <p>Testing camera access...</p>
+                    </div>
+                    <div class="status-card" id="yoloStatus">
+                        <h3><span class="status-indicator pending"></span>YOLO Model</h3>
+                        <p>Loading model...</p>
+                    </div>
+                    <div class="status-card" id="integrationStatus">
+                        <h3><span class="status-indicator pending"></span>Integration</h3>
+                        <p>Testing system integration...</p>
+                    </div>
+                </div>
+            </div>
+
+             Test Controls 
+            <div class="test-section">
+                <h2>Test Controls</h2>
+                <button class="button" onclick="runQuickCheck()">Quick Health Check</button>
+                <button class="button" onclick="runFullTest()">Run Full System Test</button>
+                <button class="button" onclick="testCameraOnly()">Test Camera Only</button>
+                <button class="button" onclick="testYOLOOnly()">Test YOLO Only</button>
+                <button class="button danger" onclick="clearResults()">Clear Results</button>
+                
+                <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+             Camera Preview 
+            <div class="test-section">
+                <h2>Camera Preview</h2>
+                <video id="monitoring-camera" class="camera-preview" autoplay muted playsinline style="display: none;"></video>
+                <p id="cameraInfo">Camera not initialized</p>
+            </div>
+
+             Console Log 
+            <div class="test-section">
+                <h2>System Log</h2>
+                <div class="log-container" id="logContainer">
+                    <div>[v0] YOLOv8 System Test initialized</div>
+                </div>
+            </div>
+
+             Test Results 
+            <div class="test-results" id="testResults" style="display: none;">
+                <h2>Test Results</h2>
+                <div id="resultsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+     Include required libraries 
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/ort.min.js"></script>
+    
+     Include system components 
+    <script src="/lib/camera/camera-manager.js"></script>
+    <script src="/lib/vision/face-detector.js"></script>
+    <script src="/lib/vision/yolo-local-model.js"></script>
+    <script src="/lib/vision/yolov8-integration.js"></script>
+    <script src="/lib/vision/vision-coordinator.js"></script>
+    <script src="/lib/vision/yolo-system-test.js"></script>
+
+    <script>
+        let systemTest = null;
+        let isTestRunning = false;
+
+        // Initialize test system
+        document.addEventListener('DOMContentLoaded', async () => {
+            systemTest = new YOLOSystemTest();
+            log('[v0] Test system initialized');
+            
+            // Run initial health check
+            setTimeout(runQuickCheck, 1000);
+        });
+
+        // Logging function
+        function log(message) {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            logContainer.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Update status card
+        function updateStatus(cardId, status, message) {
+            const card = document.getElementById(cardId);
+            const indicator = card.querySelector('.status-indicator');
+            const text = card.querySelector('p');
+            
+            indicator.className = `status-indicator ${status}`;
+            text.textContent = message;
+            
+            if (status === 'success') {
+                card.className = 'status-card success';
+            } else if (status === 'error') {
+                card.className = 'status-card error';
+            } else {
+                card.className = 'status-card';
+            }
+        }
+
+        // Update progress bar
+        function updateProgress(percentage) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            if (percentage > 0) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = percentage + '%';
+            } else {
+                progressBar.style.display = 'none';
+            }
+        }
+
+        // Quick health check
+        async function runQuickCheck() {
+            if (isTestRunning) return;
+            
+            log('[v0] Running quick health check...');
+            
+            try {
+                const result = await systemTest.quickHealthCheck();
+                
+                updateStatus('environmentStatus', 
+                    result.checks.environment ? 'success' : 'error',
+                    result.checks.environment ? 'All dependencies available' : 'Missing dependencies'
+                );
+                
+                updateStatus('cameraStatus',
+                    result.checks.camera ? 'success' : 'error', 
+                    result.checks.camera ? 'Camera API available' : 'Camera API not supported'
+                );
+                
+                log(`[v0] Health check completed: ${result.healthy ? 'HEALTHY' : 'ISSUES DETECTED'}`);
+                
+            } catch (error) {
+                log(`[v0] Health check failed: ${error.message}`);
+            }
+        }
+
+        // Run full system test
+        async function runFullTest() {
+            if (isTestRunning) return;
+            
+            isTestRunning = true;
+            log('[v0] Starting comprehensive system test...');
+            
+            // Reset status
+            updateStatus('environmentStatus', 'pending', 'Testing...');
+            updateStatus('cameraStatus', 'pending', 'Testing...');
+            updateStatus('yoloStatus', 'pending', 'Testing...');
+            updateStatus('integrationStatus', 'pending', 'Testing...');
+            
+            try {
+                updateProgress(10);
+                const result = await systemTest.runFullSystemTest();
+                updateProgress(100);
+                
+                // Update status based on results
+                updateStatus('environmentStatus',
+                    result.systemStatus.environment ? 'success' : 'error',
+                    result.systemStatus.environment ? 'Environment OK' : 'Environment issues'
+                );
+                
+                updateStatus('cameraStatus',
+                    result.systemStatus.camera ? 'success' : 'error',
+                    result.systemStatus.camera ? 'Camera working' : 'Camera issues'
+                );
+                
+                updateStatus('yoloStatus',
+                    result.systemStatus.yolo ? 'success' : 'error',
+                    result.systemStatus.yolo ? 'YOLO model loaded' : 'YOLO issues'
+                );
+                
+                updateStatus('integrationStatus',
+                    result.systemStatus.integration ? 'success' : 'error',
+                    result.systemStatus.integration ? 'Integration working' : 'Integration issues'
+                );
+                
+                // Display detailed results
+                displayTestResults(result);
+                
+                log(`[v0] Full test completed: ${result.success ? 'SUCCESS' : 'FAILED'}`);
+                
+                if (result.recommendations.length > 0) {
+                    log('[v0] Recommendations:');
+                    result.recommendations.forEach(rec => {
+                        log(`[v0] ${rec.priority.toUpperCase()}: ${rec.issue} - ${rec.solution}`);
+                    });
+                }
+                
+            } catch (error) {
+                log(`[v0] Full test failed: ${error.message}`);
+            } finally {
+                isTestRunning = false;
+                updateProgress(0);
+            }
+        }
+
+        // Test camera only
+        async function testCameraOnly() {
+            if (isTestRunning) return;
+            
+            log('[v0] Testing camera system only...');
+            
+            try {
+                const cameraManager = new CameraManager();
+                await cameraManager.initialize();
+                
+                const video = document.getElementById('monitoring-camera');
+                video.style.display = 'block';
+                
+                const info = document.getElementById('cameraInfo');
+                const status = cameraManager.getStatus();
+                info.textContent = `Camera active: ${status.streamSettings.width}x${status.streamSettings.height} @ ${status.streamSettings.frameRate}fps`;
+                
+                updateStatus('cameraStatus', 'success', 'Camera test passed');
+                log('[v0] Camera test completed successfully');
+                
+                // Cleanup after 10 seconds
+                setTimeout(() => {
+                    cameraManager.cleanup();
+                    video.style.display = 'none';
+                    info.textContent = 'Camera test completed';
+                }, 10000);
+                
+            } catch (error) {
+                updateStatus('cameraStatus', 'error', 'Camera test failed');
+                log(`[v0] Camera test failed: ${error.message}`);
+            }
+        }
+
+        // Test YOLO only
+        async function testYOLOOnly() {
+            if (isTestRunning) return;
+            
+            log('[v0] Testing YOLO system only...');
+            
+            try {
+                // Test YOLOv8Processor
+                const processor = new YOLOv8Processor({
+                    useLocalModel: true,
+                    confidence: 0.5
+                });
+                
+                await processor.initialize();
+                const status = processor.getModelStatus();
+                
+                log(`[v0] YOLO Status: ${JSON.stringify(status, null, 2)}`);
+                
+                updateStatus('yoloStatus', 
+                    status.isInitialized ? 'success' : 'error',
+                    status.hasLocalModel ? 'Local model loaded' : 'Using simulation mode'
+                );
+                
+                log('[v0] YOLO test completed');
+                
+            } catch (error) {
+                updateStatus('yoloStatus', 'error', 'YOLO test failed');
+                log(`[v0] YOLO test failed: ${error.message}`);
+            }
+        }
+
+        // Display detailed test results
+        function displayTestResults(result) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const testResults = document.getElementById('testResults');
+            
+            resultsContainer.innerHTML = '';
+            
+            result.tests.forEach(test => {
+                const testDiv = document.createElement('div');
+                testDiv.className = `test-result ${test.passed ? 'passed' : 'failed'}`;
+                
+                testDiv.innerHTML = `
+                    <h3>${test.name} ${test.passed ? '✅' : '❌'}</h3>
+                    <p>Duration: ${test.duration}ms</p>
+                    ${test.error ? `<p style="color: #f44336;">Error: ${test.error}</p>` : ''}
+                    ${test.checks ? `
+                        <div class="test-details">
+                            ${test.checks.map(check => `
+                                <div>${check.passed ? '✅' : '❌'} ${check.name}: ${check.details}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                `;
+                
+                resultsContainer.appendChild(testDiv);
+            });
+            
+            testResults.style.display = 'block';
+        }
+
+        // Clear results
+        function clearResults() {
+            document.getElementById('logContainer').innerHTML = '<div>[v0] Log cleared</div>';
+            document.getElementById('testResults').style.display = 'none';
+            
+            // Reset status
+            updateStatus('environmentStatus', 'pending', 'Ready for testing');
+            updateStatus('cameraStatus', 'pending', 'Ready for testing');
+            updateStatus('yoloStatus', 'pending', 'Ready for testing');
+            updateStatus('integrationStatus', 'pending', 'Ready for testing');
+        }
+
+        // Handle errors globally
+        window.addEventListener('error', (event) => {
+            log(`[v0] ERROR: ${event.error.message}`);
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`[v0] UNHANDLED PROMISE REJECTION: ${event.reason}`);
+        });
+    </script>
+</body>
+</html>

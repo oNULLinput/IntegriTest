@@ -31,16 +31,46 @@ window.examOperations = {
         throw new Error("Failed to generate unique exam code")
       }
 
+      const normalizedQuestions =
+        examData.questions?.map((q, index) => {
+          const questionObj = {
+            question_text: q.question || q.question_text || `Question ${index + 1}`,
+            question_type: q.type || q.question_type || "multiple-choice",
+            points: q.points || 1,
+            correct_answer: q.correctAnswer || q.correct_answer,
+          }
+
+          // Handle multiple choice options consistently
+          if (questionObj.question_type === "multiple-choice" && q.options) {
+            if (Array.isArray(q.options)) {
+              // Store as simple array of strings
+              questionObj.options = q.options.map((opt, optIndex) => {
+                if (typeof opt === "object" && opt !== null) {
+                  return opt.option_text || opt.text || opt.value || opt.label || `Option ${optIndex + 1}`
+                } else {
+                  return String(opt).trim() || `Option ${optIndex + 1}`
+                }
+              })
+            } else {
+              questionObj.options = ["Option A", "Option B", "Option C", "Option D"]
+            }
+          }
+
+          return questionObj
+        }) || []
+
       const exam = {
         title: examData.title,
         description: examData.description,
-        duration: examData.duration,
+        duration: Number.parseInt(examData.duration),
         exam_code: examCode,
-        questions: examData.questions || [],
+        questions: normalizedQuestions,
         is_active: true,
         instructor_id: examData.instructor_id,
         created_at: new Date().toISOString(),
       }
+
+      console.log("[v0] Exam data being inserted:", exam)
 
       const { data, error } = await supabase.from("exams").insert([exam]).select().single()
 
@@ -209,12 +239,15 @@ window.examOperations = {
   // Get all exams for instructor
   async getInstructorExams(instructorId) {
     try {
+      console.log("[v0] Getting exams for instructor:", instructorId)
+
       const supabase = window.createSupabaseClient()
 
       const { data, error } = await supabase
         .from("exams")
         .select("*")
         .eq("instructor_id", instructorId)
+        .eq("is_active", true)
         .order("created_at", { ascending: false })
 
       if (error) {
@@ -222,6 +255,7 @@ window.examOperations = {
         return []
       }
 
+      console.log("[v0] Found exams for instructor:", data?.length || 0)
       return data || []
     } catch (error) {
       console.error("[v0] Error getting instructor exams:", error)

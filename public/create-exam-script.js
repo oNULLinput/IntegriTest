@@ -8,9 +8,9 @@ let currentInstructor = null
 // DOM elements
 const examForm = document.getElementById("create-exam-form")
 const questionsContainer = document.getElementById("questions-container")
-const fileUploadArea = document.getElementById("file-upload-area")
-const fileInput = document.getElementById("file-input")
-const uploadedFilesList = document.getElementById("uploaded-files")
+const fileUploadArea = document.getElementById("upload-area")
+const fileInput = document.getElementById("material-upload")
+const uploadedFilesList = document.getElementById("files-list")
 
 // Initialize the page
 document.addEventListener("DOMContentLoaded", () => {
@@ -28,12 +28,34 @@ async function checkInstructorAuth() {
     return
   }
 
-  currentInstructor = JSON.parse(instructorData)
-  console.log("[v0] Instructor authenticated:", currentInstructor.username)
+  try {
+    currentInstructor = JSON.parse(instructorData)
+    if (!currentInstructor.isAuthenticated || !currentInstructor.id) {
+      throw new Error("Invalid instructor session")
+    }
+    console.log("[v0] Instructor authenticated:", currentInstructor.username)
+
+    window.currentInstructorId = currentInstructor.id
+
+    const instructorNameElement = document.querySelector("#instructor-name")
+    if (instructorNameElement) {
+      instructorNameElement.textContent = currentInstructor.fullName || currentInstructor.username
+    }
+  } catch (error) {
+    console.error("[v0] Invalid instructor session:", error)
+    localStorage.removeItem("instructorSession")
+    alert("Your session has expired. Please log in again.")
+    window.location.href = "index.html"
+  }
 }
 
 // File Upload Handling
 function setupFileUpload() {
+  if (!fileUploadArea || !fileInput) {
+    console.log("[v0] File upload elements not found, skipping file upload setup")
+    return
+  }
+
   // Drag and drop functionality
   fileUploadArea.addEventListener("dragover", (e) => {
     e.preventDefault()
@@ -103,6 +125,11 @@ function handleFileUpload(files) {
 }
 
 function updateUploadedFilesList() {
+  if (!uploadedFilesList) {
+    console.log("[v0] Uploaded files list element not found")
+    return
+  }
+
   if (uploadedFiles.length === 0) {
     uploadedFilesList.innerHTML = '<p class="no-files">No files uploaded yet</p>'
     return
@@ -306,14 +333,14 @@ function generateQuestions() {
     return
   }
 
-  const aiPrompt = document.getElementById("ai-prompt").value.trim()
-  if (!aiPrompt) {
-    alert("Please provide AI generation instructions.")
+  const generationPrompt = document.getElementById("generation-prompt")?.value?.trim()
+  if (!generationPrompt) {
+    alert("Please provide generation instructions.")
     return
   }
 
-  const questionCount = Number.parseInt(document.getElementById("question-count").value)
-  const difficulty = document.getElementById("difficulty-level").value
+  const questionCount = Number.parseInt(document.getElementById("question-count")?.value || 10)
+  const difficulty = document.getElementById("difficulty-level")?.value || "medium"
 
   const generateBtn = document.querySelector(".btn-generate")
   const originalText = generateBtn.innerHTML
@@ -329,8 +356,8 @@ function generateQuestions() {
     generateBtn.innerHTML = originalText
     generateBtn.disabled = false
 
-    alert("AI question generation will be implemented with your AI service integration.")
-    console.log("[v0] AI generation placeholder - integrate with real AI service")
+    alert("Automated question generation will be implemented with your content analysis service integration.")
+    console.log("[v0] Generation placeholder - integrate with real content analysis service")
   }, 2000)
 }
 
@@ -441,16 +468,6 @@ async function saveExamToDatabase() {
       return
     }
 
-    const examData = {
-      title: examTitle,
-      description: examSubject,
-      duration: Number.parseInt(examDuration),
-      instructions: examInstructions,
-      shuffle_questions: shuffleQuestions,
-      instructor_id: currentInstructor?.id || 1,
-      is_active: true, // Ensure exam is created as active
-    }
-
     const questions = []
     const questionItems = document.querySelectorAll(".question-item")
 
@@ -465,8 +482,8 @@ async function saveExamToDatabase() {
 
       const questionData = {
         id: Number.parseInt(questionId),
-        type: questionType,
-        question: questionText,
+        question_type: questionType, // Use database field name
+        question_text: questionText, // Use database field name
         points: Number.parseInt(questionDiv.querySelector(`[name="question_${questionId}_points"]`)?.value) || 1,
       }
 
@@ -502,7 +519,19 @@ async function saveExamToDatabase() {
       return
     }
 
-    examData.questions = questions
+    const examData = {
+      title: examTitle,
+      description: examSubject || examTitle, // Use title as fallback
+      duration: Number.parseInt(examDuration),
+      instructions: examInstructions,
+      shuffle_questions: shuffleQuestions,
+      questions: questions,
+      instructor_id: currentInstructor.id, // Ensure instructor ID is properly set
+      is_active: true,
+      created_at: new Date().toISOString(),
+      question_count: questions.length,
+      total_points: questions.reduce((sum, q) => sum + (q.points || 1), 0),
+    }
 
     console.log("[v0] Exam data prepared:", examData)
 
@@ -521,8 +550,16 @@ async function saveExamToDatabase() {
       return
     }
 
-    showExamCreatedModal(examTitle, result.exam_code)
+    showExamCreatedModal(examTitle, result.exam_code, questions.length)
     console.log("[v0] Exam created successfully with code:", result.exam_code)
+
+    setTimeout(() => {
+      if (confirm("Exam created successfully! Would you like to create another exam?")) {
+        window.location.reload()
+      } else {
+        goBackToDashboard()
+      }
+    }, 3000)
   } catch (error) {
     console.error("[v0] Error creating exam:", error)
     alert("Failed to create exam: " + error.message)
@@ -544,13 +581,11 @@ function generateExamCode() {
   return code
 }
 
-function showExamCreatedModal(title, code) {
-  showNotification(`Exam "${title}" created successfully! Access code: ${code}`, "success")
+function showExamCreatedModal(title, code, questionCount) {
+  const message = `Exam "${title}" created successfully!\n\nAccess Code: ${code}\nQuestions: ${questionCount}\n\nStudents can now access this exam using the code.`
+  showNotification(message, "success")
 
-  // Auto-redirect to dashboard after 3 seconds
-  setTimeout(() => {
-    goBackToDashboard()
-  }, 3000)
+  console.log("[v0] Exam created:", { title, code, questionCount })
 }
 
 function showNotification(message, type = "info") {
@@ -908,7 +943,6 @@ async function completeEditing() {
 
   // Validate exam has questions
   if (questions.length === 0) {
-    alert("Please add at least one question to the exam.")
     return
   }
 

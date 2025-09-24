@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Edit Navigation</title>
+</head>
+<body>
+  <h1>Test Edit Navigation</h1>
+  <p>Check the console for debugging information.</p>
+  
+  <div>
+    <h2>Test Links:</h2>
+    <a href="edit-exam.html?examCode=TEST123" target="_blank">Test Edit Exam Link</a><br>
+    <button onclick="testEditFunction()">Test Edit Function</button>
+  </div>
+  
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="lib/supabase/client.js"></script>
+  <script src="test-edit-navigation.js"></script>
+  
+  <script>
+    function testEditFunction() {
+      console.log("[v0] Testing edit function...")
+      window.location.href = `edit-exam.html?examCode=TEST123`
+    }
+  </script>
+</body>
+</html>

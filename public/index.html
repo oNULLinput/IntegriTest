@@ -6,10 +6,6 @@
     <title>IntegriTest - Secure Online Examination Platform</title>
     <meta name="description" content="Empowering educational institutions with trustworthy online assessments" />
     
-    <!-- Added environment variable meta tags for Supabase configuration -->
-    <meta name="supabase-url" content="__SUPABASE_URL__" />
-    <meta name="supabase-anon-key" content="__SUPABASE_ANON_KEY__" />
-    
     <!-- Added Google Fonts for Inter and Playfair Display -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -96,21 +92,84 @@
               </div>
 
               <form id="student-form" class="form">
-                <!-- Camera detection / consent -->
+                <!-- Enhanced camera security section with comprehensive monitoring -->
                 <div class="form-group camera-verify">
                   <label style="display:flex;align-items:center;gap:0.5rem;">
                     <input id="face-verified" type="checkbox" disabled>
                     <span id="face-verified-label">Face detected</span>
                   </label>
 
-                  <!-- Detect face button (clickable text) -->
-                  <button type="button" id="start-camera-btn" class="btn btn-outline">Detect face</button>
+                  <!-- Enhanced detect face button -->
+                  <button type="button" id="start-camera-btn" class="btn btn-outline">Start Secure Monitoring</button>
 
-                  <!-- Camera preview container -->
-                  <div class="camera-container" style="display:flex;gap:1rem;align-items:center;margin-top:0.75rem;">
-                    <video id="camera-preview" autoplay muted playsinline style="width:160px;height:120px;border-radius:8px;display:none;background:#000"></video>
-                    <div id="camera-status" style="padding:0.5rem 0.75rem;border-radius:6px;background:linear-gradient(135deg,rgba(0,0,0,0.6),rgba(55,65,81,0.6));color:#fff;min-width:180px;">
-                      <div class="status-text">Camera not started</div>
+                  <!-- Enhanced camera preview with security overlay -->
+                  <div class="camera-container" style="display:flex;gap:1rem;align-items:flex-start;margin-top:0.75rem;">
+                    <div class="camera-preview-wrapper" style="position:relative;display:none;" id="camera-preview-wrapper">
+                      <video id="camera-preview" autoplay muted playsinline style="width:200px;height:150px;border-radius:8px;background:#000;border:2px solid #374151;"></video>
+                      
+                      <!-- Security overlay -->
+                      <div class="security-overlay" style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;border-radius:8px;">
+                        <!-- Recording indicator -->
+                        <div class="recording-indicator" style="position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:4px;background:rgba(220,38,38,0.9);color:white;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:600;">
+                          <div class="pulse-dot" style="width:6px;height:6px;background:#fff;border-radius:50%;animation:pulse 1.5s infinite;"></div>
+                          REC
+                        </div>
+                        
+                        <!-- Security badge -->
+                        <div class="security-badge" style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.8);color:#10b981;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:600;border:1px solid #10b981;">
+                          🛡️ SECURE MONITORING
+                        </div>
+                        
+                        <!-- AI Detection indicator -->
+                        <div class="ai-indicator" style="position:absolute;top:8px;left:8px;background:rgba(59,130,246,0.9);color:white;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:600;display:none;" id="ai-detection-indicator">
+                          🔍 DETECTION ACTIVE
+                        </div>
+                        
+                        <!-- Detection indicator -->
+                        <div class="detection-indicator" style="position:absolute;top:8px;left:8px;background:rgba(59,130,246,0.9);color:white;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:600;display:none;" id="detection-indicator">
+                          🔍 DETECTION ACTIVE
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Enhanced status panel -->
+                    <div class="security-status-panel" style="flex:1;min-width:220px;">
+                      <div id="camera-status" style="padding:1rem;border-radius:8px;background:linear-gradient(135deg,rgba(0,0,0,0.8),rgba(55,65,81,0.8));color:#fff;border:1px solid #374151;">
+                        <div class="status-header" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                          <div class="status-icon" style="width:12px;height:12px;background:#6b7280;border-radius:50%;" id="main-status-icon"></div>
+                          <div class="status-text" style="font-weight:600;font-size:14px;">Security System Inactive</div>
+                        </div>
+                        
+                        <!-- Security indicators grid -->
+                        <div class="security-indicators" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                          <div class="indicator" style="display:flex;align-items:center;gap:6px;font-size:12px;">
+                            <div class="indicator-dot" style="width:8px;height:8px;background:#6b7280;border-radius:50%;" id="camera-indicator"></div>
+                            <span>Camera</span>
+                          </div>
+                          <div class="indicator" style="display:flex;align-items:center;gap:6px;font-size:12px;">
+                            <div class="indicator-dot" style="width:8px;height:8px;background:#6b7280;border-radius:50%;" id="security-indicator"></div>
+                            <span>Security</span>
+                          </div>
+                          <div class="indicator" style="display:flex;align-items:center;gap:6px;font-size:12px;">
+                            <div class="indicator-dot" style="width:8px;height:8px;background:#6b7280;border-radius:50%;" id="ai-indicator"></div>
+                            <span>YOLO AI</span>
+                          </div>
+                          <div class="indicator" style="display:flex;align-items:center;gap:6px;font-size:12px;">
+                            <div class="indicator-dot" style="width:8px;height:8px;background:#6b7280;border-radius:50%;" id="privacy-indicator"></div>
+                            <span>Privacy</span>
+                          </div>
+                          <div class="indicator" style="display:flex;align-items:center;gap:6px;font-size:12px;">
+                            <div class="indicator-dot" style="width:8px;height:8px;background:#6b7280;border-radius:50%;" id="detection-indicator"></div>
+                            <span>Object Detection</span>
+                          </div>
+                        </div>
+                        
+                        <!-- Security level -->
+                        <div class="security-level" style="margin-top:12px;padding:8px;background:rgba(55,65,81,0.5);border-radius:6px;border-left:3px solid #6b7280;" id="security-level">
+                          <div style="font-size:11px;color:#9ca3af;margin-bottom:2px;">Security Level</div>
+                          <div style="font-weight:600;font-size:13px;" id="security-level-text">Inactive</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -214,7 +273,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
             </svg>
             <h3>Real-time Proctoring</h3>
-            <p>AI-powered monitoring ensures exam integrity with live supervision</p>
+            <p>Advanced monitoring ensures exam integrity with live supervision</p>
           </div>
 
           <div class="feature-card">
@@ -251,10 +310,6 @@
 
     <!-- Added Supabase CDN script for database connectivity -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <!-- Added environment configuration script first to inject variables -->
-    <script src="lib/config/env-config.js"></script>
-    <!-- Added database configuration module before other scripts -->
-    <script src="lib/config/database-config.js"></script>
     <!-- Added missing database operation scripts -->
     <script src="lib/supabase/client.js"></script>
     <script src="lib/database/instructor-operations.js"></script>
@@ -262,5 +317,41 @@
     <!-- Added utility script before main script -->
     <script src="utils.js"></script>
     <script src="script.js"></script>
+
+    <!-- Added CSS animations for security indicators -->
+    <style>
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+      }
+      
+      .security-overlay {
+        animation: securityScan 3s ease-in-out infinite;
+      }
+      
+      @keyframes securityScan {
+        0%, 100% { box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.3); }
+        50% { box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.6); }
+      }
+      
+      .indicator-dot {
+        transition: all 0.3s ease;
+      }
+      
+      .indicator-dot.active {
+        background: #10b981 !important;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+      }
+      
+      .indicator-dot.warning {
+        background: #f59e0b !important;
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+      }
+      
+      .indicator-dot.error {
+        background: #dc2626 !important;
+        box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
+      }
+    </style>
   </body>
 </html>
