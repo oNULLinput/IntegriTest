@@ -19,5 +19,6 @@
   },
   "emmet.includeLanguages": {
     "javascript": "javascriptreact"
-  }
+  },
+  "testing.automaticallyOpenTestResults": "neverOpen"
 }
