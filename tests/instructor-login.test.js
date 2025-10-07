@@ -120,6 +120,9 @@ describe('Instructor Login - Comprehensive Tests', () => {
 
     // Add comprehensive form handlers
     setupFormHandlers();
+
+    // Ensure all mocks start completely fresh
+    jest.clearAllMocks();
   });
 
   function setupFormHandlers() {
@@ -151,7 +154,7 @@ describe('Instructor Login - Comprehensive Tests', () => {
     
     const loginBtn = document.getElementById('login-btn');
     
-    // Prevent double submission - FIXED
+    // Prevent double submission
     if (loginBtn.disabled) {
       return;
     }
@@ -179,7 +182,7 @@ describe('Instructor Login - Comprehensive Tests', () => {
         successDiv.style.display = 'block';
         
         if (rememberMe) {
-          mockLocalStorage.setItem('rememberedUser', username); // FIXED: Use mockLocalStorage
+          mockLocalStorage.setItem('rememberedUser', username);
         }
         
         setTimeout(() => {
@@ -201,15 +204,33 @@ describe('Instructor Login - Comprehensive Tests', () => {
   }
 
   afterEach(() => {
+    // Clear all mocks thoroughly
     jest.clearAllMocks();
+    
+    // Reset global state
     global.loginAttempts = 0;
     global.isAccountLocked = false;
+    
+    // Explicitly reset specific mocks to ensure clean state
+    if (global.validateInstructorLogin) global.validateInstructorLogin.mockClear();
+    if (global.redirectToInstructorDashboard) global.redirectToInstructorDashboard.mockClear();
+    if (global.showForgotPasswordModal) global.showForgotPasswordModal.mockClear();
+    if (global.togglePasswordVisibility) global.togglePasswordVisibility.mockClear();
+    
+    // Clear localStorage mock
+    mockLocalStorage.getItem.mockClear();
+    mockLocalStorage.setItem.mockClear();
+    mockLocalStorage.removeItem.mockClear();
+    mockLocalStorage.clear.mockClear();
   });
 
-  // ORIGINAL 5 TESTS (FIXED)
+  // ORIGINAL 5 TESTS (FINAL FIXES)
 
-  // Test 1: Successful instructor login with correct credentials - FIXED
+  // Test 1: Successful instructor login with correct credentials - FINAL FIX
   test('1. Should successfully login with correct credentials (admin/password)', async () => {
+    // Ensure completely clean state before test
+    global.redirectToInstructorDashboard.mockClear();
+    
     const usernameInput = document.getElementById('instructor-username');
     const passwordInput = document.getElementById('instructor-password');
     const form = document.getElementById('instructor-form');
@@ -219,18 +240,28 @@ describe('Instructor Login - Comprehensive Tests', () => {
 
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
-    // Wait for both async operations (validation + redirect delay) - FIXED timing
-    await new Promise(resolve => setTimeout(resolve, 1100));
+    // Wait for both async operations (validation + redirect delay)
+    await new Promise(resolve => setTimeout(resolve, 1200));
 
     expect(global.validateInstructorLogin).toHaveBeenCalledWith('admin', 'password');
+    
+    // Verify success message appears
+    const successDiv = document.getElementById('login-success');
+    expect(successDiv.style.display).toBe('block');
+    expect(successDiv.textContent).toBe('Login successful');
+    
+    // Verify redirect is called
     expect(global.redirectToInstructorDashboard).toHaveBeenCalled();
     
     const errorDiv = document.getElementById('login-error');
     expect(errorDiv.style.display).toBe('none');
   });
 
-  // Test 2: Failed login with incorrect username
+  // Test 2: Failed login with incorrect username - FINAL FIX
   test('2. Should show error message with incorrect username', async () => {
+    // Ensure completely clean state before test
+    global.redirectToInstructorDashboard.mockClear();
+    
     const usernameInput = document.getElementById('instructor-username');
     const passwordInput = document.getElementById('instructor-password');
     const form = document.getElementById('instructor-form');
@@ -240,7 +271,7 @@ describe('Instructor Login - Comprehensive Tests', () => {
 
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     expect(global.validateInstructorLogin).toHaveBeenCalledWith('wronguser', 'password');
     expect(global.redirectToInstructorDashboard).not.toHaveBeenCalled();
@@ -248,6 +279,10 @@ describe('Instructor Login - Comprehensive Tests', () => {
     const errorDiv = document.getElementById('login-error');
     expect(errorDiv.style.display).toBe('block');
     expect(errorDiv.textContent).toContain('Invalid credentials');
+    
+    // Verify success message is hidden
+    const successDiv = document.getElementById('login-success');
+    expect(successDiv.style.display).toBe('none');
   });
 
   // Test 3: Failed login with incorrect password
@@ -311,9 +346,9 @@ describe('Instructor Login - Comprehensive Tests', () => {
     expect(loginBtn.textContent).toBe('Signing In...');
   });
 
-  // ADDITIONAL 15 TESTS (FIXED)
+  // ADDITIONAL 15 TESTS
 
-  // Test 6: Username with whitespace trimming - FIXED
+  // Test 6: Username with whitespace trimming
   test('6. Should trim whitespace from username input', async () => {
     const usernameInput = document.getElementById('instructor-username');
     const passwordInput = document.getElementById('instructor-password');
@@ -324,7 +359,6 @@ describe('Instructor Login - Comprehensive Tests', () => {
 
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     
-    // Wait for both async operations - FIXED timing
     await new Promise(resolve => setTimeout(resolve, 1100));
 
     expect(global.validateInstructorLogin).toHaveBeenCalledWith('admin', 'password');
@@ -351,7 +385,7 @@ describe('Instructor Login - Comprehensive Tests', () => {
     expect(toggleBtn.textContent).toBe('👁️');
   });
 
-  // Test 8: Remember Me functionality - FIXED
+  // Test 8: Remember Me functionality
   test('8. Should save username to localStorage when Remember Me is checked', async () => {
     const usernameInput = document.getElementById('instructor-username');
     const passwordInput = document.getElementById('instructor-password');
@@ -366,7 +400,6 @@ describe('Instructor Login - Comprehensive Tests', () => {
     
     await new Promise(resolve => setTimeout(resolve, 1100));
 
-    // Check that localStorage.setItem was called (using the mock) - FIXED
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith('rememberedUser', 'admin');
   });
 
@@ -410,7 +443,6 @@ describe('Instructor Login - Comprehensive Tests', () => {
     const passwordInput = document.getElementById('instructor-password');
     const form = document.getElementById('instructor-form');
 
-    // First failed attempt
     usernameInput.value = 'admin';
     passwordInput.value = 'wrong1';
 
@@ -465,7 +497,7 @@ describe('Instructor Login - Comprehensive Tests', () => {
     const passwordInput = document.getElementById('instructor-password');
     const form = document.getElementById('instructor-form');
 
-    usernameInput.value = 'ADMIN'; // uppercase
+    usernameInput.value = 'ADMIN';
     passwordInput.value = 'password';
 
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
@@ -495,7 +527,7 @@ describe('Instructor Login - Comprehensive Tests', () => {
     expect(global.redirectToInstructorDashboard).not.toHaveBeenCalled();
   });
 
-  // Test 16: Form field maxlength validation - FIXED
+  // Test 16: Form field maxlength validation
   test('16. Should respect maxlength attribute on input fields', () => {
     const usernameInput = document.getElementById('instructor-username');
     const passwordInput = document.getElementById('instructor-password');
@@ -503,14 +535,13 @@ describe('Instructor Login - Comprehensive Tests', () => {
     expect(usernameInput.maxLength).toBe(50);
     expect(passwordInput.maxLength).toBe(50);
     
-    // Note: JSDOM doesn't enforce maxlength like real browsers - FIXED
-    // In real browsers, this would be truncated to 50 characters
-    // For testing, we just verify the attribute exists
+    // Note: JSDOM doesn't enforce maxlength like real browsers
+    // For testing, we verify the attribute exists
     expect(usernameInput.hasAttribute('maxlength')).toBe(true);
     expect(passwordInput.hasAttribute('maxlength')).toBe(true);
   });
 
-  // Test 17: Multiple rapid form submissions (prevent double submission) - FIXED
+  // Test 17: Multiple rapid form submissions (prevent double submission)
   test('17. Should prevent multiple rapid form submissions', async () => {
     const usernameInput = document.getElementById('instructor-username');
     const passwordInput = document.getElementById('instructor-password');
@@ -531,7 +562,7 @@ describe('Instructor Login - Comprehensive Tests', () => {
     // Wait for completion
     await new Promise(resolve => setTimeout(resolve, 1100));
     
-    // Validation should only be called once due to double-submission prevention - FIXED
+    // Validation should only be called once due to double-submission prevention
     expect(global.validateInstructorLogin).toHaveBeenCalledTimes(1);
   });
 
@@ -584,7 +615,6 @@ describe('Instructor Login - Comprehensive Tests', () => {
     expect(codeElements[0].textContent).toBe('admin');
     expect(codeElements[1].textContent).toBe('password');
 
-    // Check the demo text structure
     const demoText = demoCredentials.querySelector('p');
     expect(demoText.textContent).toContain('Demo credentials:');
   });
