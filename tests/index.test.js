@@ -421,21 +421,22 @@ describe('IntegriTest - Landing Page Tests', () => {
   });
 
   // Test 14: External resources links
-  test('14. Should have Google Fonts and CSS links in head', () => {
-    const preconnects = document.querySelectorAll('link[rel="preconnect"]');
-    expect(preconnects).toHaveLength(2);
-    expect(preconnects[0].href).toBe('https://fonts.googleapis.com/');
-    expect(preconnects[1].href).toBe('https://fonts.gstatic.com/');
-    
-    const fontLink = document.querySelector('link[href*="fonts.googleapis.com/css2"]');
-    expect(fontLink).toBeTruthy();
-    expect(fontLink.href).toContain('Inter');
-    expect(fontLink.href).toContain('Playfair+Display');
-    
-    const cssLink = document.querySelector('link[rel="stylesheet"]');
-    expect(cssLink).toBeTruthy();
-    expect(cssLink.href).toContain('styles.css');
-  });
+test('14. Should have Google Fonts and CSS links in head', () => {
+  const preconnects = document.querySelectorAll('link[rel="preconnect"]');
+  expect(preconnects).toHaveLength(2);
+  expect(preconnects[0].href).toBe('https://fonts.googleapis.com/');
+  expect(preconnects[1].href).toBe('https://fonts.gstatic.com/');
+  
+  const fontLink = document.querySelector('link[href*="fonts.googleapis.com/css2"]');
+  expect(fontLink).toBeTruthy();
+  expect(fontLink.href).toContain('Inter');
+  expect(fontLink.href).toContain('Playfair+Display');
+  
+  // Fix: Look for styles.css specifically, not just any stylesheet
+  const cssLink = document.querySelector('link[href="styles.css"]');
+  expect(cssLink).toBeTruthy();
+  expect(cssLink.getAttribute('rel')).toBe('stylesheet');
+});
 
   // Test 15: Form labels and accessibility
   test('15. Should have proper form labels for accessibility', () => {
