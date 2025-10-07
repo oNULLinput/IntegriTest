@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "jest",
-    "build": "next build",
+    "test": "jest --testEnvironment=jsdom --setupFilesAfterEnv='<rootDir>/tests/setup.js'",
+    "build": "next build",  
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start"
