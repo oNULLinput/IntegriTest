@@ -346,24 +346,25 @@ describe('Instructor Login - Comprehensive Tests', () => {
     expect(loginBtn.textContent).toBe('Signing In...');
   });
 
-  // ADDITIONAL 15 TESTS
+  // Test 6: Username with whitespace trimming - FINAL FIX
+test('6. Should trim whitespace from username input', async () => {
+  // Ensure completely clean state before test - ADD THIS LINE
+  global.redirectToInstructorDashboard.mockClear();
+  
+  const usernameInput = document.getElementById('instructor-username');
+  const passwordInput = document.getElementById('instructor-password');
+  const form = document.getElementById('instructor-form');
 
-  // Test 6: Username with whitespace trimming
-  test('6. Should trim whitespace from username input', async () => {
-    const usernameInput = document.getElementById('instructor-username');
-    const passwordInput = document.getElementById('instructor-password');
-    const form = document.getElementById('instructor-form');
+  usernameInput.value = '  admin  ';
+  passwordInput.value = 'password';
 
-    usernameInput.value = '  admin  ';
-    passwordInput.value = 'password';
+  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  
+  await new Promise(resolve => setTimeout(resolve, 1200)); // Increase wait time slightly
 
-    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    
-    await new Promise(resolve => setTimeout(resolve, 1100));
-
-    expect(global.validateInstructorLogin).toHaveBeenCalledWith('admin', 'password');
-    expect(global.redirectToInstructorDashboard).toHaveBeenCalled();
-  });
+  expect(global.validateInstructorLogin).toHaveBeenCalledWith('admin', 'password');
+  expect(global.redirectToInstructorDashboard).toHaveBeenCalled();
+});
 
   // Test 7: Password visibility toggle
   test('7. Should toggle password visibility when eye icon is clicked', () => {
