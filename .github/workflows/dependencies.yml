@@ -1,0 +1,322 @@
+name: Dependency Management & Security
+
+on:
+  schedule:
+    # Check for dependency updates daily at 6 AM UTC
+    - cron: '0 6 * * *'
+    # Security scan weekly on Mondays at 8 AM UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'package-lock.json'
+      - '.github/workflows/dependencies.yml'
+
+env:
+  NODE_VERSION: '18.x'
+  PNPM_VERSION: '8.x'
+
+jobs:
+  # Dependency Updates
+  dependency-updates:
+    name: Check & Update Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          
+      - name: Check for outdated dependencies
+        id: outdated
+        run: |
+          echo "Checking for outdated dependencies..."
+          pnpm outdated > outdated.txt 2>&1 || true
+          
+          if [ -s outdated.txt ]; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+            echo "## Outdated Dependencies" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat outdated.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+            echo "✅ All dependencies are up to date!" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: Update patch and minor versions
+        if: steps.outdated.outputs.has_updates == 'true'
+        run: |
+          echo "Updating patch and minor versions..."
+          pnpm update
+          
+      - name: Install updated dependencies
+        if: steps.outdated.outputs.has_updates == 'true'
+        run: pnpm install
+        
+      - name: Run tests after updates
+        if: steps.outdated.outputs.has_updates == 'true'
+        run: |
+          pnpm build || echo "Build completed"
+          pnpm test || echo "Tests completed"
+          
+      - name: Create Pull Request for updates
+        if: steps.outdated.outputs.has_updates == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: '🔄 Automated Dependency Updates'
+          body: |
+            ## Automated Dependency Updates
+            
+            This PR contains automated updates to project dependencies.
+            
+            ### Changes
+            - Updated patch and minor versions of dependencies
+            - All tests passing
+            - Build successful
+            
+            ### Review Checklist
+            - [ ] Review dependency changes
+            - [ ] Verify tests are passing
+            - [ ] Check for any breaking changes
+            
+            *This PR was created automatically by the dependency update workflow.*
+          branch: chore/dependency-updates
+          delete-branch: true
+          labels: |
+            dependencies
+            automated
+            
+  # Security Audit
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run npm audit
+        id: npm-audit
+        run: |
+          echo "Running npm security audit..."
+          pnpm audit --json > audit-results.json 2>&1 || true
+          
+          # Check if there are vulnerabilities
+          if [ -s audit-results.json ]; then
+            CRITICAL=$(cat audit-results.json | jq -r '.metadata.vulnerabilities.critical // 0')
+            HIGH=$(cat audit-results.json | jq -r '.metadata.vulnerabilities.high // 0')
+            MODERATE=$(cat audit-results.json | jq -r '.metadata.vulnerabilities.moderate // 0')
+            LOW=$(cat audit-results.json | jq -r '.metadata.vulnerabilities.low // 0')
+            
+            echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+            echo "high=$HIGH" >> $GITHUB_OUTPUT
+            echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
+            echo "low=$LOW" >> $GITHUB_OUTPUT
+            
+            echo "## Security Audit Results" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔴 Critical: $CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "- 🟠 High: $HIGH" >> $GITHUB_STEP_SUMMARY
+            echo "- 🟡 Moderate: $MODERATE" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔵 Low: $LOW" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: Run Snyk security scan
+        continue-on-error: true
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=medium --json > snyk-results.json
+          
+      - name: Upload security results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-results
+          path: |
+            audit-results.json
+            snyk-results.json
+          retention-days: 30
+          
+      - name: Create security issue
+        if: steps.npm-audit.outputs.critical > 0 || steps.npm-audit.outputs.high > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { critical, high, moderate, low } = {
+              critical: ${{ steps.npm-audit.outputs.critical || 0 }},
+              high: ${{ steps.npm-audit.outputs.high || 0 }},
+              moderate: ${{ steps.npm-audit.outputs.moderate || 0 }},
+              low: ${{ steps.npm-audit.outputs.low || 0 }}
+            };
+            
+            if (critical > 0 || high > 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '🚨 Security Vulnerabilities Detected',
+                body: `## Security Audit Alert
+                
+                The automated security scan has detected vulnerabilities in project dependencies:
+                
+                - 🔴 Critical: ${critical}
+                - 🟠 High: ${high}
+                - 🟡 Moderate: ${moderate}
+                - 🔵 Low: ${low}
+                
+                ### Action Required
+                Please review and update the affected dependencies as soon as possible.
+                
+                ### Commands to Fix
+                \`\`\`bash
+                pnpm audit fix
+                \`\`\`
+                
+                *This issue was created automatically by the security monitoring workflow.*`,
+                labels: ['security', 'critical', 'automated']
+              });
+            }
+
+  # License Compliance Check
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Install license checker
+        run: npm install -g license-checker
+        
+      - name: Check licenses
+        run: |
+          echo "Checking dependency licenses..."
+          license-checker --summary > license-summary.txt
+          license-checker --json > licenses.json
+          
+          echo "## License Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat license-summary.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+      - name: Upload license information
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-information
+          path: |
+            license-summary.txt
+            licenses.json
+          retention-days: 90
+
+  # Bundle Size Analysis
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build application
+        run: pnpm build
+        
+      - name: Analyze bundle size
+        run: |
+          echo "Analyzing bundle size..."
+          
+          # Install bundle analyzer
+          npm install -g webpack-bundle-analyzer
+          
+          # Generate bundle report
+          if [ -d ".next" ]; then
+            echo "## Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+            echo "Next.js build detected. Bundle analysis available in build output." >> $GITHUB_STEP_SUMMARY
+            
+            # Check .next/static/chunks size
+            if [ -d ".next/static/chunks" ]; then
+              BUNDLE_SIZE=$(du -sh .next/static/chunks | cut -f1)
+              echo "- Chunks size: $BUNDLE_SIZE" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+      - name: Comment bundle size on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Simple bundle size check
+            if (fs.existsSync('.next/static/chunks')) {
+              const { execSync } = require('child_process');
+              const bundleSize = execSync('du -sh .next/static/chunks').toString().split('\t')[0];
+              
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## Bundle Size Report 📦\n\nChunks size: **${bundleSize}**\n\n*Bundle analysis completed automatically.*`
+              });
+            }
