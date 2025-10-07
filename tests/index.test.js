@@ -11,14 +11,6 @@ global.navigator = {
   }
 };
 
-// Mock DOM methods
-Object.defineProperty(window, 'location', {
-  writable: true,
-  value: {
-    href: ''
-  }
-});
-
 // Mock localStorage
 const localStorageMock = {
   getItem: jest.fn(),
@@ -35,6 +27,7 @@ global.console = {
   warn: jest.fn()
 };
 
+
 // Load the HTML content and scripts
 const fs = require('fs');
 const path = require('path');
@@ -50,6 +43,14 @@ beforeEach(() => {
   fetch.mockClear();
   localStorageMock.getItem.mockClear();
   localStorageMock.setItem.mockClear();
+  
+  // Set up window location AFTER jsdom is ready
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: {
+      href: ''
+    }
+  });
   
   // Create a fresh DOM for each test
   const htmlPath = path.join(__dirname, '../index.html');
