@@ -5,7 +5,7 @@ module.exports = {
   collectCoverageFrom: ["public/**/*.js", "!public/**/*.min.js", "!public/**/node_modules/**"],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
-  moduleNameMapping: {
+  moduleNameMapping: {  // <- CHANGE THIS LINE
     "^@/(.*)$": "<rootDir>/public/$1",
   },
   globals: {
