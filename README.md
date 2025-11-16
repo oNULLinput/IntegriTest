@@ -1,13 +1,40 @@
-# IntegriTest - Secure Online Examination Platform
+IntegriTest - Secure Online Examination Platform
+IntegriTest is a web-based system designed for secure, automated online examinations. It provides an end-to-end solution for both instructors and students, focusing on integrity, ease of use, and streamlined exam workflows.
 
-A complete HTML/CSS/JavaScript examination system with instructor dashboard and student exam interface.
+Features
+Separate dashboards for instructors and students
 
-## 🚀 Quick Start
+Instructor tools: exam creation, management, and monitoring
 
-### Demo Credentials
-- **Instructor Login**: `admin` / `password`
-- **Student Exam Code**: `1234`
+Student interface: easy and secure access with unique exam codes
 
-### Setup Instructions
+Automated proctoring-ready system architecture
 
-1. **Create Project Folder**
+Real-time progress tracking and instant result calculation
+
+Built with JavaScript, HTML, CSS, and TypeScript for maximum compatibility
+
+🚀 Quick Start
+Demo Credentials
+Instructor Login: admin / password
+
+Student Exam Code: 1234
+
+Setup Instructions
+Clone the Repo
+git clone https://github.com/oNULLinput/IntegriTest.git
+
+Navigate to the Project Folder
+cd IntegriTest
+
+Open with Your Preferred IDE
+
+Technology Stack
+JavaScript, TypeScript (frontend logic)
+
+HTML/CSS (UI)
+
+PLpgSQL (database functions, if using PostgreSQL)
+
+License
+MIT License – use, modify, and distribute freely.
